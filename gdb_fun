@@ -1,0 +1,7 @@
+define fn
+printf "Index: %d\n", index
+printf "Char: '%c'\n", curr_ch
+printf "Line: %d\n", line
+printf "Column: %d\n", column
+next
+end

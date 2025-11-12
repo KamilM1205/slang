@@ -1,0 +1,38 @@
+What I want?
+===========================
+I want to write program like neofetch, but on C++ and with own config language.
+Name of project in CozyFetch. CozyFetch must be flexible, config file must be like script.
+Developer must have opportunity to add new functions from c++
+
+Approximate view of the config file
+===========================
+Arithmetic operations:
+
+set x = 1 + 5.0
+
+Outputing to console:
+message x  # message - output only in log system. The developer chooses where the log will be displayed.
+message "Hello, world!"
+
+
+How realize it?
+============================
+I think the interpreter should have following pipeline:
+
+ ┌───────┐      ┌───────────────┐        ┌──────────┐      ┌────────────────┐       ┌───────────────┐         ┌─────────┐
+ │ Start │─────►│ Input content │───────►│ Tokenize │─────►│ Build AST tree │──────►│ Test AST tree │────────►│ Execute │
+ └───────┘      └───────────────┘        └──────────┘      └────────────────┘       └───────────────┘         └─────────┘
+
+What tokenizer should do?
+- Split text by spaces and remove extra spaces and special symbols
+- Categorize tokens and save values of that tokens. For example: TokenType: Numeric; TokenValue: 5.
+- Have behavior like iterator(have method next or realy implement iterator).
+
+
+How build AST tree? What classes of expressions must be defined?
+================================================================
+We must iterate over array of tokens and search patterns of expressions and statements.
+If some set of tokens not fit any pattern, we must throw error.
+
+
+

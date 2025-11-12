@@ -1,0 +1,186 @@
+=============================
+#          Lexer            #
+=============================
+
+        Strings
+Strings must be inside double quotes(").
+Escape symbols: \", \\ \n \r \t \b
+
+        Datatypes
+bool - boolean data type. Have value: true/false
+int - integer data type.
+float - double precision real number.
+string - for strings.
+ustring - for utf-8 strings.
+array[T] - dynamic array, where T is fixed type
+object - any type of class.
+
+        Numbers
+We have two types: int and float.
+
+float - double precision float IEEE 754(I think we can use one precision with flags for compiler which set in header of bytecode file).
+int - 64 bit integer(or 32 bit if used compiler's flag).
+
+Syntax:
+float - (sign +/-)(%d).%d. Example: 3.14, 3.0, 0.5, .5.
+int - (sign +/-)(number system designation prefix like 0X/0x for hexadecimal and 0B/0b for binary)%d.
+
+        Expressions
+Arithmetic:
+a + b;
+a - b;
+a * b;
+a / b;
+a % b; - remainder from division
+a++; - increment
+a--; - decrement
+-a; - negative prefix
++a; - positive prefix. Value be like a
+
+(condition) ? thenArm : elseArm;
+
+Comprasion and equality:
+
+a < b; less than
+a > b; greater than
+a <= b; less or equal than
+a >= b; greater or equal than
+a == b; equal
+a != b; not equal
+
+Logical operators:
+!true; false
+!false; true
+
+a and b; check that both is true
+a or b; check that one or both is true
+
+Precedence and grouping:
+Language have typical arithmetic precedence that mean multiplication and division have greater precedence
+than addition and subtraction.
+
+In arithmetic operations we can use grouping to indicate priotity. For examaple: 
+(a+b)/2;
+
+          Statements
+All statements splits by semicolon(;). On one line you can declare more than one statement.
+
+Calling built-in functions is similar to calling user-defined functions:
+some_stuff();
+print("Hello, world!");
+
+Block statement wrap around {}.
+Example:
+
+fn entry() {
+  {
+    var a: int = 5;
+    var b: string = "Some stuff";
+    print(a);
+    print(b);
+  }
+}
+
+Variables and constants:
+const name: type = value; - constants cannot be null
+var name: type; - variables can be null
+var name: type = value;
+var name = value; - if you set initial value you don't need to specify type
+
+var arr: array[int] = {0, 1, 2, 3};
+var arr = {0, 1, 2, 3};
+
+Control flow:
+if statement:
+
+if (condition) {
+    print("Yes");
+} elif (condition) {
+  print("Maybe");
+} else {
+  print("No");
+}
+
+while loop:
+
+while(condition) {
+  print("While condition is true");
+}
+
+for loop:
+
+for (initial, max/min, step) {
+  print("some stuff");
+}
+
+
+var some_array = {1, 2, 3, 4};
+for (var i = 1, #some_array, 1) {
+  print("Item: {}\n", some_array[i]);
+}
+
+Functions:
+
+fn name(arguments): return_type {
+  return value;
+}
+
+void function:
+fn name(arguments) {
+  return;
+}
+
+function_name(arguments); - calling function
+
+example:
+fn add(a: int, b: int): int {
+  return a + b;
+}
+
+OOP:
+
+class Name {
+  field: type; - public field
+  _field: type; - private field
+
+  init(args) {   - constructor
+     -- body
+  }
+
+  method(args): return_type {  - method writing wihout fn
+    -- body
+  }
+
+  destroy {  - destructor
+    -- body
+  }
+}
+
+Interfaces cannot have bodies.
+interface InterName {
+  method1(args): ret_value;
+  method2();
+}
+
+You can extend one class(class Name for example) and many interfaces.
+class Name2: Name < Interf1, Interf2 {
+
+}
+
+var myinstance = Name(args_for_constructor);
+
+myinstance.func(myinstance.some_field);
+
+Importing modules:
+
+import "module"
+
+Comments:
+-- - one line comment
+--[[ --]] - multiline comment
+
+Strings:
+
+"One line string"
+
+[[ Multiline string ]]

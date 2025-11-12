@@ -1,0 +1,43 @@
+stmt::= <import> | <block> | <if> | <while> | <for> | <var> | <assign> | <count_assign> | <fn> | <return> | <fn_call> | <interface> | <class>
+class::= 'class' <ident> [':' <ident>] ['<' ident [',' <ident>]*] <class_block>
+class_block::= '{' (<class_field> | <class_method>)* '}'
+class_field::= ['_']<ident> ':' <type> ';'
+class_method::= <ident> '(' args ')' [':' <type>] <block>
+interface::= 'interface' <ident> <intf_block>
+intf_block::= '{' <oop_fn>* '}'
+oop_fn::= <ident> '(' <args> ')' [':' <type>] <block>
+fn::= 'fn' <ident> '(' <args> ')' [':' <type>] <block>
+return::= 'return' <expression> ';'
+for::= 'for' '('(<var> | <assign>) ';' <condition> ';' (<unary_expr> | <count_assign>) ')' <block>
+while::= 'while' '(' <expr> ')' <block>
+if::= 'if' '(' <expr> ')' <block> (elif '(' <expr> ')' <block>)* (else <block>)?
+block::= '{' <stmt>* '}'
+var::= 'var' <ident> [':' <type>] ['=' <expr>] ';'
+count_assign::= <ident> ('+=' | '-=' | '*=' | '/=' | '%=') <expr> ';'
+args_call::= (<expr> (',' <expr>)*)?
+args::= ( <ident> ':' <type> ( ',' <ident> ':' <type> )* )?
+import::= 'import' litteral ';'
+
+
+fn_call::= <ident> '(' <args_call> ')'
+assign::= <ident> '=' <ternary_expr> ';' | <expr>
+expr::= <ternary_expr>
+ternary_expr::= <condition> '?' <expr> ':' <expr> | <condition>
+condition::= <or_expr>
+or_expr::= <and_expr>('or' <and_expr>)*
+and_expr::= <compare>('and' <compare)*
+compare::= <term> (<logic> <term>)*
+term::= <factor> (("+" | "-") <factor>)*
+factor::= <unary_prefix> (("*" | "/" | "%") <unary_prefix>)*
+increment_prefix::= ('++' | '--') <increment_postfix> | <increment_postfix>
+increment_postfix::= <unary> ('++' | '--') | <unary>
+unary::= ("+" | "-" | "!") <unary> | <primary>
+primary::= <ident> | <number> | <litteral> | <bool> | '(' <expr> ')' | fn_call
+litteral::= string
+bool::= "true" | "false"
+number::= ('+' | '-') (<integer> | <float>)
+float::= <integer> '.' <integer> | '.' <integer>
+integer::= [0-9]*
+logic::= '==' | '!=' | '>' | '>=' | '<' | '<='
+type::= 'int' | 'float' | 'bool' | 'string' | 'ustring' | <ident>
+ident::= [a-zA-Z][a-zA-Z0-9_]*
