@@ -1,4 +1,3 @@
-#include "lexer.hpp"
 #include "parser.hpp"
 #include <fstream>
 #include <iostream>
@@ -39,7 +38,7 @@ std::string load_src(char *path) {
   std::string line;
 
   if (!src.is_open()) {
-    std::cout << "Error" << std::endl;
+    std::cout << "Error: Cannot open file." << std::endl;
     return "";
   }
 

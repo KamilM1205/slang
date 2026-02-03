@@ -21,7 +21,6 @@ private:
   auto consume(TokenType type) -> Token;
   auto consume(TokenType type, std::string msg) -> Token;
   bool is_type();
-  auto consume_type() -> Token;
 
   auto parse_value() -> AST::Expr_t;
   auto parse_fun_call() -> AST::Expr_t;
@@ -51,9 +50,11 @@ private:
   auto parse_elif_stmt() -> AST::IfStmt;
   auto parse_if_stmt() -> AST::IfStmt;
   auto parse_while_stmt() -> AST::WhileStmt;
+  auto parse_class_field(Token &identifier) -> AST::ClassField;
+  auto parse_class_method(Token &identifier) -> AST::ClassFnDefineStmt;
   auto parse_class_block() -> AST::BlockStmt;
   auto parse_class_stmt() -> AST::ClassStmt;
-  auto parse_interface_fn() -> AST::FnDefineStmt;
+  auto parse_interface_fn() -> AST::InterfaceFnDefineStmt;
   auto parse_interface_block() -> AST::BlockStmt;
   auto parse_interface_stmt() -> AST::InterfaceStmt;
   auto parse_for_stmt() -> AST::ForStmt;

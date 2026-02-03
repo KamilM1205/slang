@@ -5,6 +5,7 @@
 #include "utils.hpp"
 #include <memory>
 #include <optional>
+#include <source_location>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -30,8 +31,11 @@ class ReturnStmt;
 class IfStmt;
 class WhileStmt;
 class ForStmt;
+class InterfaceFnDefineStmt;
 class InterfaceStmt;
 class ClassStmt;
+class ClassField;
+class ClassFnDefineStmt;
 class ExprStmt;
 class VoidStmt; // Need to shut up warning about empty return from "parse_stmt"
 
@@ -54,8 +58,11 @@ public:
   virtual void visit(IfStmt &stmt) = 0;
   virtual void visit(WhileStmt &stmt) = 0;
   virtual void visit(ForStmt &stmt) = 0;
+  virtual void visit(InterfaceFnDefineStmt &stmt) = 0;
   virtual void visit(InterfaceStmt &stmt) = 0;
   virtual void visit(ClassStmt &stmt) = 0;
+  virtual void visit(ClassField &stmt) = 0;
+  virtual void visit(ClassFnDefineStmt &stmt) = 0;
   virtual void visit(ExprStmt &stmt) = 0;
   virtual void visit(VoidStmt &stmt) = 0;
 };
@@ -63,6 +70,13 @@ public:
 class ExprPrinter : public IExprVisitor {
 private:
   std::stringstream ss;
+  size_t indent_level = 0;
+
+  void tab();
+  void indent();
+  void
+  untab(const std::source_location &location = std::source_location::current());
+  void newline();
 
 public:
   void visit(Expr &expr) override;
@@ -82,8 +96,11 @@ public:
   void visit(IfStmt &stmt) override;
   void visit(WhileStmt &stmt) override;
   void visit(ForStmt &stmt) override;
+  void visit(InterfaceFnDefineStmt &stmt) override;
   void visit(InterfaceStmt &stmt) override;
   void visit(ClassStmt &stmt) override;
+  void visit(ClassField &stmt) override;
+  void visit(ClassFnDefineStmt &stmt) override;
   void visit(ExprStmt &stmt) override;
   void visit(VoidStmt &stmt) override;
 
@@ -302,6 +319,21 @@ public:
   void accept(IExprVisitor &visitor) override { visitor.visit(*this); }
 };
 
+class InterfaceFnDefineStmt : public Expr {
+  getter(Token, ident);
+  getter(std::vector<ArgDefineExpr>, args);
+  getter(std::optional<Token>, ret_type);
+
+public:
+  InterfaceFnDefineStmt(Token ident, std::vector<ArgDefineExpr> args,
+                        Token ret_type)
+      : _ident(ident), _args(args), _ret_type(ret_type) {}
+  InterfaceFnDefineStmt(Token ident, std::vector<ArgDefineExpr> args)
+      : _ident(ident), _args(args), _ret_type({}) {}
+
+  void accept(IExprVisitor &visitor) override { visitor.visit(*this); }
+};
+
 class InterfaceStmt : public Expr {
   getter(Token, ident);
   getter(BlockStmt, block);
@@ -323,6 +355,40 @@ public:
   ClassStmt(Token ident, std::optional<Token> super,
             std::optional<std::vector<Token>> interfaces, BlockStmt block)
       : _ident(ident), _super(super), _interfaces(interfaces),
+        _block(std::move(block)) {}
+
+  void accept(IExprVisitor &visitor) override { visitor.visit(*this); }
+};
+
+class ClassField : public Expr {
+  getter(Token, ident);
+  getter(bool, is_private);
+  getter(Token, type);
+
+public:
+  ClassField(Token ident, bool is_private, Token type)
+      : _ident(ident), _is_private(is_private), _type(type) {}
+
+  void accept(IExprVisitor &visitor) override { visitor.visit(*this); }
+};
+
+class ClassFnDefineStmt : public Expr {
+  getter(Token, ident);
+  getter(bool, is_private);
+  getter(std::vector<ArgDefineExpr>, args);
+  getter(std::optional<Token>, ret_type);
+  getter(BlockStmt, block);
+
+public:
+  ClassFnDefineStmt(Token ident, bool is_private,
+                    std::vector<ArgDefineExpr> args, Token ret_type,
+                    BlockStmt block)
+      : _ident(ident), _is_private(is_private), _args(args),
+        _ret_type(ret_type), _block(std::move(block)) {}
+
+  ClassFnDefineStmt(Token ident, bool is_private,
+                    std::vector<ArgDefineExpr> args, BlockStmt block)
+      : _ident(ident), _is_private(is_private), _args(args), _ret_type({}),
         _block(std::move(block)) {}
 
   void accept(IExprVisitor &visitor) override { visitor.visit(*this); }

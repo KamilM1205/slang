@@ -9,6 +9,7 @@
 #include <iostream>
 #include <memory>
 #include <optional>
+#include <vector>
 
 // TODO: write comments for all parser's functions
 
@@ -468,7 +469,7 @@ auto Parser::parse_args() -> std::vector<AST::ArgDefineExpr> {
 auto Parser::parse_fn_define() -> AST::FnDefineStmt {
   Token ident = consume(TokenType::IDENTIFIER);
   std::vector<AST::ArgDefineExpr> args;
-  Token ret_type;
+  std::optional<Token> ret_type;
 
   consume(TokenType::BR_BEGIN);
 
@@ -495,8 +496,12 @@ auto Parser::parse_fn_define() -> AST::FnDefineStmt {
 
   AST::BlockStmt block = std::move(parse_block());
 
-  return AST::FnDefineStmt(ident, std::move(args), std::move(block),
-                           std::move(ret_type));
+  if (ret_type.has_value()) {
+    return AST::FnDefineStmt(ident, std::move(args), std::move(block),
+                             std::move(ret_type.value()));
+  } else {
+    return AST::FnDefineStmt(ident, std::move(args), std::move(block));
+  }
 }
 
 auto Parser::parse_return() -> AST::ReturnStmt {
@@ -594,47 +599,39 @@ auto Parser::parse_for_stmt() -> AST::ForStmt {
                       std::move(block));
 }
 
-// TODO: Complete class block parser
-auto Parser::parse_class_block() -> AST::BlockStmt {
-  consume(TokenType::BLK_BEGIN);
+auto Parser::parse_class_field(Token &identifier) -> AST::ClassField {
+  Token type;
+  bool is_private = false;
 
-  while ()
-}
+  consume(TokenType::COLON);
 
-auto Parser::parse_class_stmt() -> AST::ClassStmt {
-  Token ident = consume(TokenType::IDENTIFIER);
-  std::optional<Token> super;
-  std::optional<std::vector<Token>> interfaces;
-  AST::BlockStmt block;
-
-  // Parse super class
-  if (match({TokenType::COLON})) {
-    next();
-
-    super = consume(TokenType::IDENTIFIER);
+  if (!is_type()) {
+    econ->add_error(
+        ErrorType::ERR, curr_tok().line(), curr_tok().column(),
+        lexer.get_line(curr_tok()),
+        std::vformat(ERROR_EXPECTED_TOKEN,
+                     std::make_format_args(
+                         "variable type",
+                         static_cast<const std::string>(tok2str(curr_tok())))));
   }
 
-  if (match({TokenType::LS})) {
-    do {
-      if (!interfaces->empty() && match({TokenType::COMMA})) {
-        next();
-      }
+  type = curr_tok();
+  next();
 
-      interfaces->push_back(curr_tok());
-    } while (match({TokenType::COMMA}));
+  consume(TokenType::SEMICOLON);
+
+  if (identifier.getValue()[0] == '_') {
+    is_private = true;
   }
 
-  block = std::move(parse_class_block());
-
-  return AST::ClassStmt(ident, std::move(super), std::move(interfaces),
-                        std::move(block));
+  return AST::ClassField(identifier, is_private, type);
 }
 
-auto Parser::parse_interface_fn() -> AST::FnDefineStmt {
-  Token ident = consume(TokenType::IDENTIFIER);
+auto Parser::parse_class_method(Token &identifier) -> AST::ClassFnDefineStmt {
+  bool is_private;
   std::vector<AST::ArgDefineExpr> args;
+  std::optional<Token> ret_type;
   AST::BlockStmt block;
-  Token ret_type;
 
   consume(TokenType::BR_BEGIN);
 
@@ -656,23 +653,143 @@ auto Parser::parse_interface_fn() -> AST::FnDefineStmt {
                                    std::make_format_args(
                                        "type", static_cast<const std::string &>(
                                                    tok2str(curr_tok())))));
+      panic();
+    }
+  }
+
+  block = parse_block();
+
+  if (identifier.getValue()[0] == '_') {
+    is_private = true;
+  }
+
+  if (ret_type.has_value()) {
+    return AST::ClassFnDefineStmt(identifier, is_private, args,
+                                  ret_type.value(), std::move(block));
+  } else {
+    return AST::ClassFnDefineStmt(identifier, is_private, args,
+                                  std::move(block));
+  }
+}
+
+auto Parser::parse_class_block() -> AST::BlockStmt {
+  std::vector<AST::Expr_t> stmts;
+  consume(TokenType::BLK_BEGIN);
+
+  while (!match({TokenType::BLK_END})) {
+    Token ident;
+
+    ident = consume(TokenType::IDENTIFIER);
+
+    // Field
+    if (match({TokenType::COLON})) {
+      stmts.push_back(std::unique_ptr<AST::ClassField>(
+          new AST::ClassField(parse_class_field(ident))));
+    }
+    // Method
+    else if (match({TokenType::BR_BEGIN})) {
+      stmts.push_back(std::unique_ptr<AST::ClassFnDefineStmt>(
+          new AST::ClassFnDefineStmt(parse_class_method(ident))));
+    } else {
+      econ->add_error(
+          ErrorType::ERR, curr_tok().line(), curr_tok().column(),
+          lexer.get_line(curr_tok()),
+          std::vformat(ERROR_UNEXPECTED_TOKEN,
+                       std::make_format_args(static_cast<const std::string &>(
+                           tok2str(curr_tok())))));
+    }
+  }
+
+  consume(TokenType::BLK_END);
+
+  return AST::BlockStmt(std::move(stmts));
+}
+
+auto Parser::parse_class_stmt() -> AST::ClassStmt {
+  Token ident = consume(TokenType::IDENTIFIER);
+  std::optional<Token> super;
+  std::optional<std::vector<Token>> interfaces;
+  AST::BlockStmt block;
+
+  // Parse super class
+  if (match({TokenType::COLON})) {
+    next();
+
+    super = consume(TokenType::IDENTIFIER);
+  }
+
+  if (match({TokenType::LS})) {
+    interfaces = std::vector<Token>();
+    next();
+    do {
+      if (curr_tok().getType() == TokenType::IDENTIFIER) {
+        interfaces->push_back(curr_tok());
+        next();
+      } else {
+        econ->add_error(
+            ErrorType::ERR,
+            std::vformat(ERROR_EXPECTED_TOKEN,
+                         std::make_format_args("interface name",
+                                               static_cast<const std::string &>(
+                                                   tok2str(curr_tok())))));
+        panic();
+      }
+    } while (match({TokenType::COMMA}));
+  }
+
+  block = std::move(parse_class_block());
+
+  return AST::ClassStmt(ident, std::move(super), std::move(interfaces),
+                        std::move(block));
+}
+
+auto Parser::parse_interface_fn() -> AST::InterfaceFnDefineStmt {
+  Token ident = consume(TokenType::IDENTIFIER);
+  std::vector<AST::ArgDefineExpr> args;
+  std::optional<Token> ret_type;
+
+  consume(TokenType::BR_BEGIN);
+
+  if (!match({TokenType::BR_END})) {
+    args = std::move(parse_args());
+  }
+
+  consume(TokenType::BR_END);
+
+  if (match({TokenType::COLON})) {
+    next();
+    if (is_type()) {
+      ret_type = curr_tok();
+      next();
+    } else {
+      econ->add_error(ErrorType::ERR, curr_tok().line(), curr_tok().column(),
+                      lexer.get_line(curr_tok()),
+                      std::vformat(ERROR_EXPECTED_TOKEN,
+                                   std::make_format_args(
+                                       "type", static_cast<const std::string &>(
+                                                   tok2str(curr_tok())))));
+      panic();
     }
   }
 
   consume(TokenType::SEMICOLON);
 
-  return AST::FnDefineStmt(ident, std::move(args), std::move(block),
-                           std::move(ret_type));
+  if (ret_type.has_value()) {
+    return AST::InterfaceFnDefineStmt(ident, std::move(args),
+                                      std::move(ret_type.value()));
+  } else {
+    return AST::InterfaceFnDefineStmt(ident, std::move(args));
+  }
 }
 
 auto Parser::parse_interface_block() -> AST::BlockStmt {
   std::vector<AST::Expr_t> stmts;
 
-  Token block_begin = consume(TokenType::BLK_BEGIN);
+  consume(TokenType::BLK_BEGIN);
 
   while (!match({TokenType::BLK_END})) {
-    stmts.push_back(std::unique_ptr<AST::FnDefineStmt>(
-        new AST::FnDefineStmt(parse_interface_fn())));
+    stmts.push_back(std::unique_ptr<AST::InterfaceFnDefineStmt>(
+        new AST::InterfaceFnDefineStmt(parse_interface_fn())));
   }
   consume(TokenType::BLK_END);
 
