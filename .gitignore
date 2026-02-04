@@ -1,3 +1,6 @@
 build/
 .cache/
 bin/
+docs/*
+!docs/Doxyfile.in
+Doxyfile
