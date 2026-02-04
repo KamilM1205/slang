@@ -11,13 +11,13 @@ endif()
 
 message(STATUS "slang Build Type: ${CMAKE_BUILD_TYPE}")
 
-# Set the version for cozyfetch
-set(cozyfetch_Version_Major 0)
-set(cozyfetch_Version_Minor 1)
-set(cozyfetch_Version_Patch 0)
-set(cozyfetch_Version_Status "-dev")
+# Set the version for slang
+set(slang_Version_Major 0)
+set(slang_Version_Minor 1)
+set(slang_Version_Patch 0)
+set(slang_Version_Status "-dev")
 set(PROJECT_VERSION
-  "${cozyfetch_Version_Major}.${cozyfetch_Version_Minor}.${cozyfetch_Version_Patch}${cozyfetch_Version_Status}"
+  "${slang_Version_Major}.${slang_Version_Minor}.${slang_Version_Patch}${slang_Version_Status}"
 )
 message(STATUS "${PROJECT_NAME} version: ${PROJECT_VERSION}")
 
@@ -29,7 +29,7 @@ if(NOT SLANG_USE_TESTS)
   set(SLANG_USE_TESTS ${use_tests} CACHE STRING "Set use tests." FORCE)
 endif()
 
-message(STATUS "slang Use Tests: ${COZY_USE_TESTS}")
+message(STATUS "slang Use Tests: ${SLANG_USE_TESTS}")
 
 set(${PROJECT_NAME}_INSTALL_DIR ${PROJECT_SOURCE_DIR}/bin)
 set(CMAKE_CURRENT_BINARY_DIR ${${PROJECT_NAME}_INSTALL_DIR})
