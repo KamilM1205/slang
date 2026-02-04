@@ -1,4 +1,4 @@
-if(COZY_USE_TESTS)
+if(SLANG_USE_TESTS)
   include(FetchContent)
   set(FETCHCONTENT_QUIET FALSE)
 
