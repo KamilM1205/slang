@@ -1,3 +1,9 @@
+/**
+ * @file error.hpp
+ * @brief Хранит объявление констант строк ошибок
+ * @author Kamil Meftahutdinov
+ * @date 2026
+ */
 #ifndef ERRORS_HPP
 #define ERRORS_HPP
 

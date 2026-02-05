@@ -2,15 +2,18 @@
 #define CONTEXT_HPP
 
 #include "lexer.hpp"
+#include "message.hpp"
 #include "parser.hpp"
 
-class Context {
+class SLContext {
 private:
   Lexer lexer;
   Parser parser;
+  MessageContainer *econ;
 
 public:
-  Context();
+  SLContext();
+  void parse(std::string &source);
 };
 
 #endif // CONTEXT_HPP

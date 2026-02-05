@@ -1,3 +1,11 @@
+/**
+ * @file ast.cpp
+ * @brief Реализует функционал вывода AST дерева в консоль
+ * @details Хранит имплементацию методов класса ExprPrinter для вывода структуры
+ * AST дерева.
+ * @author Kamil Meftahutdinov
+ * @date 2026
+ */
 #include "ast.hpp"
 #include "lexer.hpp"
 #include <format>

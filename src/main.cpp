@@ -1,3 +1,4 @@
+#include "context.hpp"
 #include "parser.hpp"
 #include <fstream>
 #include <iostream>
@@ -51,12 +52,13 @@ std::string load_src(char *path) {
 }
 
 int main(int argc, char *argv[]) {
-  Parser parser;
+  SLContext ctx;
 
   parse_args(argc, argv);
 
-  parser.set_source(load_src(argv[1]));
-  parser.parse();
+  std::string src = load_src(argv[1]);
+
+  ctx.parse(src);
 
   return EXIT_SUCCESS;
 }

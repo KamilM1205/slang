@@ -1,11 +1,10 @@
 #include "lexer.hpp"
-#include "error.hpp"
 #include "errors.hpp"
+#include "message.hpp"
 #include "panic.hpp"
 #include "utils.hpp"
 #include <cctype>
 #include <cstdint>
-#include <format>
 #include <string>
 #include <unordered_map>
 
@@ -90,7 +89,7 @@ const std::unordered_map<std::string, TokenType> keywords_table = {
 };
 
 Lexer::Lexer() {
-  econ = ErrorContainer::get_instance();
+  econ = MessageContainer::get_instance();
   index = 0;
   column = 1;
   line = 1;
@@ -116,7 +115,7 @@ cross_inline void Lexer::addToken(TokenType type, std::string value) {
 
 cross_inline void Lexer::check_overflow() {
   if (index + 1 >= SIZE_MAX) {
-    econ->add_error(ErrorType::ERR, ERROR_INDEX_OVERFLOW);
+    econ->add_msg(MessageType::ERR, ERROR_INDEX_OVERFLOW);
     panic();
   }
 }
@@ -140,7 +139,7 @@ void Lexer::next() {
 void Lexer::next_line() {
   column = 0;
   if (line + 1 == SIZE_MAX) {
-    econ->add_error(ErrorType::ERR, ERROR_LINE_OVERFLOW);
+    econ->add_msg(MessageType::ERR, ERROR_LINE_OVERFLOW);
     panic();
   }
 
@@ -172,11 +171,11 @@ cross_inline static bool is_alphadigit(char ch) {
 
 cross_inline bool Lexer::check_eol(char ch) {
   if (ch == END_OF_STREAM) {
-    econ->add_error(ErrorType::ERR, line, column, ERROR_UNEXPECTED_EOF);
+    econ->add_msg(MessageType::ERR, line, column, ERROR_UNEXPECTED_EOF);
     return true;
   } else if (peek() == '\n') {
-    econ->add_error(ErrorType::ERR, line, column, get_line(),
-                    ERROR_UNEXPECTED_EOL);
+    econ->add_msg(MessageType::ERR, line, column, get_line(),
+                  ERROR_UNEXPECTED_EOL);
     return true;
   }
 
@@ -249,8 +248,8 @@ parse_number:
       } else if (!is_alphadigit(peek())) {
         break;
       } else {
-        econ->add_error(ErrorType::ERR, line, column + 1, get_line(),
-                        ERROR_EXPECTED_BIN);
+        econ->add_msg(MessageType::ERR, line, column + 1, get_line(),
+                      ERROR_EXPECTED_BIN);
         return;
       }
     } else if (notation == NumberNotation::HEX) {
@@ -260,8 +259,8 @@ parse_number:
       } else if (!is_alphadigit(peek())) {
         break;
       } else {
-        econ->add_error(ErrorType::ERR, line, column + 1, get_line(),
-                        ERROR_EXPECTED_HEX);
+        econ->add_msg(MessageType::ERR, line, column + 1, get_line(),
+                      ERROR_EXPECTED_HEX);
         return;
       }
     } else {
@@ -269,8 +268,8 @@ parse_number:
         next();
         number += curr_ch;
       } else if (is_alpha(peek())) {
-        econ->add_error(ErrorType::ERR, line, column + 1, get_line(),
-                        ERROR_NUMBER_EXPECTED);
+        econ->add_msg(MessageType::ERR, line, column + 1, get_line(),
+                      ERROR_NUMBER_EXPECTED);
         return;
       } else {
         break;
@@ -313,8 +312,8 @@ bool Lexer::escape_characters(std::string &literal) {
       break;
 
     default:
-      econ->add_error(ErrorType::ERR, line, column, get_line(),
-                      ERROR_UNEXPECTED_ESC);
+      econ->add_msg(MessageType::ERR, line, column, get_line(),
+                    ERROR_UNEXPECTED_ESC);
       goto exit;
       break;
     }
@@ -359,9 +358,9 @@ cross_inline void Lexer::read_multi_string() {
 
   while (true) {
     if (peek() == END_OF_STREAM) {
-      econ->add_error(ErrorType::ERR, cline, ccolumn, start_line,
-                      ERROR_UNCLOSED_MULTISTRING);
-      econ->add_error(ErrorType::ERR, line, column, ERROR_UNEXPECTED_EOF);
+      econ->add_msg(MessageType::ERR, cline, ccolumn, start_line,
+                    ERROR_UNCLOSED_MULTISTRING);
+      econ->add_msg(MessageType::ERR, line, column, ERROR_UNEXPECTED_EOF);
       panic();
       break;
     }
@@ -400,9 +399,9 @@ cross_inline void Lexer::pass_multi_comment() {
 
   while (true) {
     if (peek() == END_OF_STREAM) {
-      econ->add_error(ErrorType::ERR, cline, ccolumn, start_line,
-                      ERROR_UNCLOSED_MULTICOMMENT);
-      econ->add_error(ErrorType::ERR, line, column, ERROR_UNEXPECTED_EOF);
+      econ->add_msg(MessageType::ERR, cline, ccolumn, start_line,
+                    ERROR_UNCLOSED_MULTICOMMENT);
+      econ->add_msg(MessageType::ERR, line, column, ERROR_UNEXPECTED_EOF);
       panic();
     }
     next();
@@ -535,6 +534,7 @@ void Lexer::tokenize() {
       break;
     case '[':
       if (peek() == '[') {
+        next();
         read_multi_string();
       } else {
         addToken(TokenType::BRACKET_BEGIN);
@@ -553,9 +553,8 @@ void Lexer::tokenize() {
       } else if (is_alpha(curr_ch) || curr_ch == '_') {
         read_identifier();
       } else {
-        econ->add_error(ErrorType::ERR, line, column, get_line(),
-                        std::vformat(ERROR_UNEXPECTED_CHAR,
-                                     std::make_format_args(curr_ch)));
+        econ->add_msg(MessageType::ERR, line, column, get_line(),
+                      ERROR_UNEXPECTED_CHAR, curr_ch);
         panic();
       }
     }

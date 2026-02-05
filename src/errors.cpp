@@ -1,3 +1,9 @@
+/**
+ * @file error.hpp
+ * @brief Хранит строки ошибок
+ * @author Kamil Meftahutdinov
+ * @date 2026
+ */
 #include "errors.hpp"
 
 /* Lexer errors */

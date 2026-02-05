@@ -1,12 +1,13 @@
 set(
   SOURCES
   main.cpp
-  error.cpp
+  message.cpp
   panic.cpp
   errors.cpp
   ast.cpp
   lexer.cpp
   parser.cpp
+  context.cpp
 )
 
 list(TRANSFORM SOURCES PREPEND ${CMAKE_CURRENT_LIST_DIR}/)

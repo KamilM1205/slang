@@ -2,15 +2,15 @@
 #define PARSER_HPP
 
 #include "ast.hpp"
-#include "error.hpp"
 #include "lexer.hpp"
+#include "message.hpp"
 #include <initializer_list>
 
 class Parser {
 private:
   size_t index;
-  Lexer lexer;
-  ErrorContainer *econ;
+  Lexer *lexer;
+  MessageContainer *econ;
   AST::ASTree tree;
   TokenList tlist;
 
@@ -62,13 +62,11 @@ private:
 
 public:
   Parser();
-  Parser(std::string &&source);
-  Parser(const std::string &source);
 
   void set_source(const std::string &source);
   void set_source(std::string &&source);
 
-  void parse();
+  void parse(Lexer *lexer);
 };
 
 #endif // !PARSER_HPP

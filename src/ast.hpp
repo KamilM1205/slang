@@ -1,7 +1,17 @@
+/**
+ * @file ast.hpp
+ * @brief Хранит структуру и вспомогательные функции для работы с AST деревом.
+ * @details Хранит всю структуру AST дерева, а также вспомогательные классы для
+ * вывода дерева в консоль, а также базовый класс, который реализует паттерн
+ * "Посетитель"
+ * @author Kamil Meftahutdinov
+ * @date 2026
+ */
+
 #ifndef AST_HPP
 #define AST_HPP
 
-#include "lexer.hpp"
+#include "token.hpp"
 #include "utils.hpp"
 #include <memory>
 #include <optional>

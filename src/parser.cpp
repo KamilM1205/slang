@@ -1,8 +1,8 @@
 #include "parser.hpp"
 #include "ast.hpp"
-#include "error.hpp"
 #include "errors.hpp"
 #include "lexer.hpp"
+#include "message.hpp"
 #include "panic.hpp"
 #include <format>
 #include <initializer_list>
@@ -14,20 +14,16 @@
 // TODO: write comments for all parser's functions
 
 Parser::Parser() {
-  econ = ErrorContainer::get_instance();
+  econ = MessageContainer::get_instance();
   index = 0;
 }
 
-Parser::Parser(const std::string &source) : Parser() { lexer = Lexer(source); }
-
-Parser::Parser(std::string &&source) : Parser() {
-  lexer = Lexer(std::move(source));
+void Parser::set_source(const std::string &source) {
+  lexer->set_source(source);
 }
 
-void Parser::set_source(const std::string &source) { lexer.set_source(source); }
-
 void Parser::set_source(std::string &&source) {
-  lexer.set_source(std::move(source));
+  lexer->set_source(std::move(source));
 }
 
 bool Parser::match(std::initializer_list<TokenType> token_types) const {
@@ -41,7 +37,7 @@ bool Parser::match(std::initializer_list<TokenType> token_types) const {
 }
 
 bool Parser::peek(std::initializer_list<TokenType> token_types) const {
-  TokenType tt = lexer.getTokens()[index + 1].getType();
+  TokenType tt = lexer->getTokens()[index + 1].getType();
 
   for (auto type : token_types) {
     if (tt == type) {
@@ -53,14 +49,14 @@ bool Parser::peek(std::initializer_list<TokenType> token_types) const {
 }
 
 auto Parser::curr_tok() const -> const Token & {
-  return lexer.getTokens()[index];
+  return lexer->getTokens()[index];
 }
 
 void Parser::next() {
   if (curr_tok().getType() != TokenType::_EOF) {
     index++;
   } else {
-    econ->add_error(ErrorType::ERR, ERROR_TOKENS_END);
+    econ->add_msg(MessageType::ERR, ERROR_TOKENS_END);
   }
 }
 
@@ -72,12 +68,9 @@ auto Parser::consume(TokenType type) -> Token {
     return token;
   }
 
-  econ->add_error(
-      ErrorType::ERR, token.line(), token.column(), lexer.get_line(token),
-      std::vformat(ERROR_EXPECTED_TOKEN,
-                   std::make_format_args(
-                       static_cast<const std::string &>(type2str(type)),
-                       static_cast<const std::string &>(tok2str(token)))));
+  econ->add_msg(MessageType::ERR, curr_tok(), ERROR_EXPECTED_TOKEN,
+                type2str(type), tok2str(token));
+
   panic();
 
   return Token();
@@ -91,8 +84,7 @@ auto Parser::consume(TokenType type, std::string msg) -> Token {
     return token;
   }
 
-  econ->add_error(ErrorType::ERR, token.line(), token.column(),
-                  lexer.get_line(token), msg);
+  econ->add_msg(MessageType::ERR, curr_tok(), msg);
   panic();
 
   return Token();
@@ -337,12 +329,8 @@ auto Parser::parse_define() -> AST::DefineExpr {
       value_type = curr_tok();
     } else {
       auto token = curr_tok();
-      econ->add_error(
-          ErrorType::ERR, token.line(), token.column(), lexer.get_line(token),
-          std::vformat(ERROR_EXPECTED_TOKEN,
-                       std::make_format_args(
-                           "variable type",
-                           static_cast<const std::string &>(tok2str(token)))));
+      econ->add_msg(MessageType::ERR, curr_tok(), ERROR_EXPECTED_TOKEN,
+                    "variable type", tok2str(curr_tok()));
       panic();
     }
     next();
@@ -409,11 +397,7 @@ auto Parser::parse_block() -> AST::BlockStmt {
 
   while (!match({TokenType::BLK_END})) {
     if (match({TokenType::_EOF})) {
-      econ->add_error(
-          ErrorType::ERR,
-          std::vformat(ERROR_UNCLOSED_BLOCK,
-                       std::make_format_args(
-                           static_cast<const size_t &>(block_begin.line()))));
+      econ->add_msg(MessageType::ERR, ERROR_UNCLOSED_BLOCK, block_begin.line());
     }
 
     if (match({TokenType::RETURN})) {
@@ -440,12 +424,8 @@ auto Parser::parse_arg_define() -> AST::ArgDefineExpr {
     type = curr_tok();
     next();
   } else {
-    econ->add_error(ErrorType::ERR, curr_tok().line(), curr_tok().column(),
-                    lexer.get_line(curr_tok()),
-                    std::vformat(ERROR_EXPECTED_TOKEN,
-                                 std::make_format_args(
-                                     "type", static_cast<const std::string &>(
-                                                 tok2str(curr_tok())))));
+    econ->add_msg(MessageType::ERR, curr_tok(), ERROR_EXPECTED_TOKEN, "type",
+                  tok2str(curr_tok()));
     panic();
   }
 
@@ -485,12 +465,8 @@ auto Parser::parse_fn_define() -> AST::FnDefineStmt {
       ret_type = curr_tok();
       next();
     } else {
-      econ->add_error(ErrorType::ERR, curr_tok().line(), curr_tok().column(),
-                      lexer.get_line(curr_tok()),
-                      std::vformat(ERROR_EXPECTED_TOKEN,
-                                   std::make_format_args(
-                                       "type", static_cast<const std::string &>(
-                                                   tok2str(curr_tok())))));
+      econ->add_msg(MessageType::ERR, curr_tok(), ERROR_EXPECTED_TOKEN, "type",
+                    tok2str(curr_tok()));
     }
   }
 
@@ -606,13 +582,8 @@ auto Parser::parse_class_field(Token &identifier) -> AST::ClassField {
   consume(TokenType::COLON);
 
   if (!is_type()) {
-    econ->add_error(
-        ErrorType::ERR, curr_tok().line(), curr_tok().column(),
-        lexer.get_line(curr_tok()),
-        std::vformat(ERROR_EXPECTED_TOKEN,
-                     std::make_format_args(
-                         "variable type",
-                         static_cast<const std::string>(tok2str(curr_tok())))));
+    econ->add_msg(MessageType::ERR, curr_tok(), ERROR_EXPECTED_TOKEN,
+                  "variable type", tok2str(curr_tok()));
   }
 
   type = curr_tok();
@@ -647,12 +618,8 @@ auto Parser::parse_class_method(Token &identifier) -> AST::ClassFnDefineStmt {
       ret_type = curr_tok();
       next();
     } else {
-      econ->add_error(ErrorType::ERR, curr_tok().line(), curr_tok().column(),
-                      lexer.get_line(curr_tok()),
-                      std::vformat(ERROR_EXPECTED_TOKEN,
-                                   std::make_format_args(
-                                       "type", static_cast<const std::string &>(
-                                                   tok2str(curr_tok())))));
+      econ->add_msg(MessageType::ERR, curr_tok(), ERROR_EXPECTED_TOKEN, "type",
+                    tok2str(curr_tok()));
       panic();
     }
   }
@@ -691,12 +658,8 @@ auto Parser::parse_class_block() -> AST::BlockStmt {
       stmts.push_back(std::unique_ptr<AST::ClassFnDefineStmt>(
           new AST::ClassFnDefineStmt(parse_class_method(ident))));
     } else {
-      econ->add_error(
-          ErrorType::ERR, curr_tok().line(), curr_tok().column(),
-          lexer.get_line(curr_tok()),
-          std::vformat(ERROR_UNEXPECTED_TOKEN,
-                       std::make_format_args(static_cast<const std::string &>(
-                           tok2str(curr_tok())))));
+      econ->add_msg(MessageType::ERR, curr_tok(), ERROR_UNEXPECTED_TOKEN,
+                    tok2str(curr_tok()));
     }
   }
 
@@ -726,12 +689,8 @@ auto Parser::parse_class_stmt() -> AST::ClassStmt {
         interfaces->push_back(curr_tok());
         next();
       } else {
-        econ->add_error(
-            ErrorType::ERR,
-            std::vformat(ERROR_EXPECTED_TOKEN,
-                         std::make_format_args("interface name",
-                                               static_cast<const std::string &>(
-                                                   tok2str(curr_tok())))));
+        econ->add_msg(MessageType::ERR, ERROR_EXPECTED_TOKEN, "interface name",
+                      tok2str(curr_tok()));
         panic();
       }
     } while (match({TokenType::COMMA}));
@@ -762,12 +721,8 @@ auto Parser::parse_interface_fn() -> AST::InterfaceFnDefineStmt {
       ret_type = curr_tok();
       next();
     } else {
-      econ->add_error(ErrorType::ERR, curr_tok().line(), curr_tok().column(),
-                      lexer.get_line(curr_tok()),
-                      std::vformat(ERROR_EXPECTED_TOKEN,
-                                   std::make_format_args(
-                                       "type", static_cast<const std::string &>(
-                                                   tok2str(curr_tok())))));
+      econ->add_msg(MessageType::ERR, curr_tok(), ERROR_EXPECTED_TOKEN, "type",
+                    tok2str(curr_tok()));
       panic();
     }
   }
@@ -856,18 +811,17 @@ auto Parser::parse_stmt() -> AST::Expr_t {
         std::vformat(ERROR_UNEXPECTED_TOKEN,
                      std::make_format_args(
                          static_cast<const std::string>(tok2str(curr_tok()))));
-    econ->add_error(ErrorType::ERR, curr_tok().line(), curr_tok().column(),
-                    lexer.get_line(curr_tok()), err);
+    econ->add_msg(MessageType::ERR, curr_tok(), err);
     panic();
   }
 
   return std::unique_ptr<AST::VoidStmt>(new AST::VoidStmt());
 }
 
-void Parser::parse() {
-  lexer.tokenize();
+void Parser::parse(Lexer *lexer) {
+  this->lexer = lexer;
 
-  if (lexer.getTokens().empty()) {
+  if (lexer->getTokens().empty()) {
     return;
   }
 
