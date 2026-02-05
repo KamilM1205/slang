@@ -60,8 +60,9 @@ if(SLANG_GEN_DOC)
   set(DOXYFILE_OUT ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile)
   configure_file(${DOXYFILE_IN} ${DOXYFILE_OUT} @ONLY)
 
-  file(GLOB SOURCE_FOR_DOCS "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
+  file(GLOB_RECURSE SOURCE_FOR_DOCS "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/*.hpp")
   set(DOXYGEN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/docs)
+  set(DOXYGEN_EXTRACT_ALL YES)
 
   doxygen_add_docs(${PROJECT_NAME}_docs ${SOURCE_FOR_DOCS}
     ALL USE_STAMP_FILE COMMENT "Generating documentation via Doxygen")
