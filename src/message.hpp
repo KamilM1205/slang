@@ -77,14 +77,8 @@ public:
                std::string message);
 
   template <typename... Args>
-  void add_msg(MessageType type, size_t line, size_t column, std::string msg,
-               Args... args) {
-    errors.push_back(Message(type, line, column, make_msg(msg, args...)));
-  }
-
-  template <typename... Args>
   void add_msg(MessageType type, size_t line, size_t column,
-               std::string line_src, std::string msg, Args... args) {
+               std::string line_src, const std::string msg, Args... args) {
     errors.push_back(
         Message(type, line, column, line_src, make_msg(msg, args...)));
   }

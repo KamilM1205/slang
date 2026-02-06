@@ -4,3 +4,4 @@ bin/
 docs/*
 !docs/Doxyfile.in
 Doxyfile
+callgrind.out.*

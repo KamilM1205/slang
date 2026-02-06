@@ -26,3 +26,7 @@ const char *ERROR_UNEXPECTED_TOKEN = "Unexpected token found: {}";
 const char *ERROR_EXPECTED_TOKEN = "Expected token: {}. Found: {}.";
 const char *ERROR_EXPRESSION = "Incorrect expression.";
 const char *ERROR_UNCLOSED_BLOCK = "Unclosed block at line: {}.";
+const char *ERROR_INTERFACE_METHOD_PRIVATE =
+    "Interface method can't be private.";
+const char *ERROR_ALREADY_BEGIN =
+    "Can't get pervious token because index on begin of tokens list.";

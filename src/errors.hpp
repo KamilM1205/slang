@@ -27,5 +27,7 @@ extern const char *ERROR_UNEXPECTED_TOKEN;
 extern const char *ERROR_EXPECTED_TOKEN;
 extern const char *ERROR_EXPRESSION;
 extern const char *ERROR_UNCLOSED_BLOCK;
+extern const char *ERROR_ALREADY_BEGIN;
+extern const char *ERROR_INTERFACE_METHOD_PRIVATE;
 
 #endif // !ERRORS_HPP

@@ -18,6 +18,7 @@ private:
   bool peek(std::initializer_list<TokenType> token_types) const;
   auto curr_tok() const -> const Token &;
   void next();
+  auto pervious() const -> const Token &;
   auto consume(TokenType type) -> Token;
   auto consume(TokenType type, std::string msg) -> Token;
   bool is_type();

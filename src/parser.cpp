@@ -60,6 +60,17 @@ void Parser::next() {
   }
 }
 
+auto Parser::pervious() const -> const Token & {
+  if (index > 0) {
+    return lexer->getTokens()[index - 1];
+  } else {
+    econ->add_msg(MessageType::ERR, curr_tok(), ERROR_ALREADY_BEGIN);
+    panic();
+  }
+
+  return curr_tok();
+}
+
 auto Parser::consume(TokenType type) -> Token {
   Token token = curr_tok();
 
@@ -599,7 +610,7 @@ auto Parser::parse_class_field(Token &identifier) -> AST::ClassField {
 }
 
 auto Parser::parse_class_method(Token &identifier) -> AST::ClassFnDefineStmt {
-  bool is_private;
+  bool is_private = false;
   std::vector<AST::ArgDefineExpr> args;
   std::optional<Token> ret_type;
   AST::BlockStmt block;
@@ -706,6 +717,14 @@ auto Parser::parse_interface_fn() -> AST::InterfaceFnDefineStmt {
   Token ident = consume(TokenType::IDENTIFIER);
   std::vector<AST::ArgDefineExpr> args;
   std::optional<Token> ret_type;
+
+  if (ident.getValue()[0] == '_') {
+    Token perv = pervious();
+    econ->add_msg(MessageType::ERR, perv.line(),
+                  perv.column() - perv.getValue().size() + 1,
+                  lexer->get_line(perv), ERROR_INTERFACE_METHOD_PRIVATE, "");
+    panic();
+  }
 
   consume(TokenType::BR_BEGIN);
 
