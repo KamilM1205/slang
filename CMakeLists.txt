@@ -68,6 +68,19 @@ if(SLANG_GEN_DOC)
     ALL USE_STAMP_FILE COMMENT "Generating documentation via Doxygen")
 endif()
 
+# Setup benchmarking
+if(NOT SLANG_USE_BENCHMARK)
+  set(use_benchmark OFF)
+  message(STATUS "Set use benchmark to OFF as none was specified.")
+  set(SLANG_USE_BENCHMARK ${use_benchmark} CACHE STRING "Set use benchmark." FORCE)
+endif()
+
+if(SLANG_USE_BENCHMARK)
+  set(BENCHMARK_IN ${CMAKE_CURRENT_SOURCE_DIR}/in/compile_options.hpp.in)
+  set(BENCHMARK_OUT ${CMAKE_CURRENT_SOURCE_DIR}/src/compile_options.hpp)
+  configure_file(${BENCHMARK_IN} ${BENCHMARK_OUT} @ONLY)
+endif()
+
 set(${PROJECT_NAME}_INSTALL_DIR ${PROJECT_SOURCE_DIR}/bin)
 set(CMAKE_CURRENT_BINARY_DIR ${${PROJECT_NAME}_INSTALL_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${${PROJECT_NAME}_INSTALL_DIR})
