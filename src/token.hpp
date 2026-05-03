@@ -123,16 +123,16 @@ public:
   }
 
   [[nodiscard]]
-  auto getType() const -> TokenType {
+  auto get_type() const -> TokenType {
     return type;
   };
-  void setType(TokenType type) { this->type = type; }
+  void set_type(TokenType type) { this->type = type; }
 
   [[nodiscard]]
-  auto getValue() const -> std::string {
+  auto get_value() const -> std::string {
     return value;
   }
-  void setValue(std::string value) { this->value = value; }
+  void set_value(std::string value) { this->value = value; }
 
   bool empty() { return type == TokenType::NONE && value.empty(); }
 };

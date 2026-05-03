@@ -72,7 +72,7 @@ auto type2str(TokenType type) -> std::string {
 }
 
 auto tok2str(const Token &token) -> std::string {
-  return type2str(token.getType());
+  return type2str(token.get_type());
 }
 
 const std::unordered_map<std::string, TokenType> keywords_table = {
