@@ -30,3 +30,6 @@ const char *ERROR_INTERFACE_METHOD_PRIVATE =
     "Interface method can't be private.";
 const char *ERROR_ALREADY_BEGIN =
     "Can't get pervious token because index on begin of tokens list.";
+const char *ERROR_EXPECTED_MEMBER_ACCESS = "Expected member access.";
+const char *ERROR_EXPECTED_MEMBER_OP =
+    "Expected class member assign or method call.";

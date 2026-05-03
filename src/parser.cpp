@@ -4,6 +4,7 @@
 #include "lexer.hpp"
 #include "message.hpp"
 #include "panic.hpp"
+#include "token.hpp"
 #include <format>
 #include <initializer_list>
 #include <iostream>
@@ -28,7 +29,7 @@ void Parser::set_source(std::string &&source) {
 
 bool Parser::match(std::initializer_list<TokenType> token_types) const {
   for (auto type : token_types) {
-    if (type == curr_tok().getType()) {
+    if (type == curr_tok().get_type()) {
       return true;
     }
   }
@@ -37,7 +38,7 @@ bool Parser::match(std::initializer_list<TokenType> token_types) const {
 }
 
 bool Parser::peek(std::initializer_list<TokenType> token_types) const {
-  TokenType tt = lexer->getTokens()[index + 1].getType();
+  TokenType tt = lexer->getTokens()[index + 1].get_type();
 
   for (auto type : token_types) {
     if (tt == type) {
@@ -53,7 +54,7 @@ auto Parser::curr_tok() const -> const Token & {
 }
 
 void Parser::next() {
-  if (curr_tok().getType() != TokenType::_EOF) {
+  if (curr_tok().get_type() != TokenType::_EOF) {
     index++;
   } else {
     econ->add_msg(MessageType::ERR, ERROR_TOKENS_END);
@@ -74,7 +75,7 @@ auto Parser::pervious() const -> const Token & {
 auto Parser::consume(TokenType type) -> Token {
   Token token = curr_tok();
 
-  if (token.getType() == type) {
+  if (token.get_type() == type) {
     next();
     return token;
   }
@@ -90,7 +91,7 @@ auto Parser::consume(TokenType type) -> Token {
 auto Parser::consume(TokenType type, std::string msg) -> Token {
   Token token = curr_tok();
 
-  if (token.getType() == type) {
+  if (token.get_type() == type) {
     next();
     return token;
   }
@@ -141,16 +142,13 @@ auto Parser::parse_fun_call() -> AST::Expr_t {
       new AST::FunCallExpr(ident, std::move(args)));
 }
 
-auto Parser::parse_primary() -> AST::Expr_t {
+auto Parser::parse_atom() -> AST::Expr_t {
   AST::Expr_t expr;
 
-  if (match({TokenType::IDENTIFIER, TokenType::NUMBER, TokenType::LITTERAL,
-             TokenType::TRUE, TokenType::FALSE})) {
-    if (match({TokenType::IDENTIFIER}) && peek({TokenType::BR_BEGIN})) {
-      expr = parse_fun_call();
-    } else {
-      expr = parse_value();
-    }
+  if (match({TokenType::IDENTIFIER}) && peek({TokenType::BR_BEGIN})) {
+    expr = parse_fun_call();
+  } else if (match({TokenType::IDENTIFIER})) {
+    expr = parse_value();
   } else {
     consume(TokenType::BR_BEGIN, ERROR_EXPRESSION);
     expr = std::unique_ptr<AST::GroupingExpr>(
@@ -158,6 +156,85 @@ auto Parser::parse_primary() -> AST::Expr_t {
     consume(TokenType::BR_END, ERROR_EXPRESSION);
   }
 
+  return std::move(expr);
+}
+
+auto Parser::parse_class_member() -> AST::Expr_t {
+  if (peek({TokenType::DOT})) {
+    auto left = std::unique_ptr<AST::ValueExpr>(new AST::ValueExpr(curr_tok()));
+    next(); // Skip identifier
+    next(); // Skip dot
+
+    return std::unique_ptr<AST::ClassMemberGetter>(new AST::ClassMemberGetter(
+        std::move(left), std::move(parse_class_member())));
+  } else if (peek({TokenType::BR_BEGIN})) {
+    auto fun_call = std::move(parse_fun_call());
+    AST::Expr_t right;
+
+    if (match({TokenType::DOT})) {
+      next(); // Skip dot
+      right = parse_class_member();
+
+      return std::unique_ptr<AST::ClassMemberCall>(
+          new AST::ClassMemberCall(std::move(fun_call), std::move(right)));
+    } else {
+      right = std::unique_ptr<AST::VoidStmt>(new AST::VoidStmt());
+    }
+
+    return std::unique_ptr<AST::ClassMemberCall>(
+        new AST::ClassMemberCall(std::move(fun_call), std::move(right)));
+  } else if (match({TokenType::IDENTIFIER})) {
+    auto left = parse_value();
+    auto right = std::unique_ptr<AST::VoidStmt>(new AST::VoidStmt());
+
+    return std::unique_ptr<AST::ClassMemberGetter>(
+        new AST::ClassMemberGetter(std::move(left), std::move(right)));
+  } else {
+    return std::unique_ptr<AST::VoidStmt>(new AST::VoidStmt());
+  }
+}
+
+auto Parser::parse_class_member_access() -> AST::Expr_t {
+  AST::Expr_t left = std::move(parse_atom());
+  std::optional<AST::Expr_t> right = {};
+
+  if (match({TokenType::DOT}) && peek({TokenType::IDENTIFIER})) {
+    next();
+    right = std::move(parse_class_member());
+  }
+
+  if (right.has_value()) {
+    if (match({TokenType::SET})) {
+      AST::Expr_t expr;
+
+      next(); // Skip '='
+      expr = parse_expression();
+
+      return std::unique_ptr<AST::ClassMemberSetter>(new AST::ClassMemberSetter(
+          std::unique_ptr<AST::ClassMemberAccess>(new AST::ClassMemberAccess(
+              std::move(left), std::move(right.value()))),
+          std::move(expr)));
+    }
+
+    return std::unique_ptr<AST::ClassMemberAccess>(
+        new AST::ClassMemberAccess(std::move(left), std::move(right.value())));
+  } else {
+    return std::move(left);
+  }
+}
+
+auto Parser::parse_primary() -> AST::Expr_t {
+  AST::Expr_t expr;
+
+  if (match({TokenType::IDENTIFIER, TokenType::NUMBER, TokenType::LITTERAL,
+             TokenType::TRUE, TokenType::FALSE, TokenType::BR_BEGIN})) {
+    if (match({TokenType::IDENTIFIER}) /* && peek({TokenType::BR_BEGIN})) */ ||
+        (match({TokenType::BR_BEGIN}))) {
+      expr = parse_class_member_access();
+    } else {
+      expr = parse_value();
+    }
+  }
   return std::move(expr);
 }
 
@@ -602,7 +679,7 @@ auto Parser::parse_class_field(Token &identifier) -> AST::ClassField {
 
   consume(TokenType::SEMICOLON);
 
-  if (identifier.getValue()[0] == '_') {
+  if (identifier.get_value()[0] == '_') {
     is_private = true;
   }
 
@@ -637,7 +714,7 @@ auto Parser::parse_class_method(Token &identifier) -> AST::ClassFnDefineStmt {
 
   block = parse_block();
 
-  if (identifier.getValue()[0] == '_') {
+  if (identifier.get_value()[0] == '_') {
     is_private = true;
   }
 
@@ -696,7 +773,7 @@ auto Parser::parse_class_stmt() -> AST::ClassStmt {
     interfaces = std::vector<Token>();
     next();
     do {
-      if (curr_tok().getType() == TokenType::IDENTIFIER) {
+      if (curr_tok().get_type() == TokenType::IDENTIFIER) {
         interfaces->push_back(curr_tok());
         next();
       } else {
@@ -718,10 +795,10 @@ auto Parser::parse_interface_fn() -> AST::InterfaceFnDefineStmt {
   std::vector<AST::ArgDefineExpr> args;
   std::optional<Token> ret_type;
 
-  if (ident.getValue()[0] == '_') {
+  if (ident.get_value()[0] == '_') {
     Token perv = pervious();
     econ->add_msg(MessageType::ERR, perv.line(),
-                  perv.column() - perv.getValue().size() + 1,
+                  perv.column() - perv.get_value().size() + 1,
                   lexer->get_line(perv), ERROR_INTERFACE_METHOD_PRIVATE, "");
     panic();
   }
@@ -778,7 +855,7 @@ auto Parser::parse_interface_stmt() -> AST::InterfaceStmt {
 }
 
 auto Parser::parse_stmt() -> AST::Expr_t {
-  switch (curr_tok().getType()) {
+  switch (curr_tok().get_type()) {
   case TokenType::VAR:
     next();
     return std::unique_ptr<AST::DefineExpr>(
@@ -844,7 +921,7 @@ void Parser::parse(Lexer *lexer) {
     return;
   }
 
-  while (curr_tok().getType() != TokenType::_EOF) {
+  while (curr_tok().get_type() != TokenType::_EOF) {
     tree.add_expression(parse_stmt());
   }
 

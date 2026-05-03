@@ -29,5 +29,7 @@ extern const char *ERROR_EXPRESSION;
 extern const char *ERROR_UNCLOSED_BLOCK;
 extern const char *ERROR_ALREADY_BEGIN;
 extern const char *ERROR_INTERFACE_METHOD_PRIVATE;
+extern const char *ERROR_EXPECTED_MEMBER_ACCESS;
+extern const char *ERROR_EXPECTED_MEMBER_OP;
 
 #endif // !ERRORS_HPP

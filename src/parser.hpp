@@ -27,6 +27,7 @@ private:
   auto parse_fun_call() -> AST::Expr_t;
   auto parse_primary() -> AST::Expr_t;
   auto parse_unary() -> AST::Expr_t;
+  auto parse_atom() -> AST::Expr_t;
   auto parse_factor() -> AST::Expr_t;
   auto parse_term() -> AST::Expr_t;
   auto parse_increment_postfix() -> AST::Expr_t;
@@ -55,6 +56,8 @@ private:
   auto parse_class_method(Token &identifier) -> AST::ClassFnDefineStmt;
   auto parse_class_block() -> AST::BlockStmt;
   auto parse_class_stmt() -> AST::ClassStmt;
+  auto parse_class_member() -> AST::Expr_t;
+  auto parse_class_member_access() -> AST::Expr_t;
   auto parse_interface_fn() -> AST::InterfaceFnDefineStmt;
   auto parse_interface_block() -> AST::BlockStmt;
   auto parse_interface_stmt() -> AST::InterfaceStmt;

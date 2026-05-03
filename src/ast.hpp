@@ -46,6 +46,10 @@ class InterfaceStmt;
 class ClassStmt;
 class ClassField;
 class ClassFnDefineStmt;
+class ClassMemberGetter;
+class ClassMemberSetter;
+class ClassMemberCall;
+class ClassMemberAccess;
 class ExprStmt;
 class VoidStmt; // Need to shut up warning about empty return from "parse_stmt"
 
@@ -73,6 +77,10 @@ public:
   virtual void visit(ClassStmt &stmt) = 0;
   virtual void visit(ClassField &stmt) = 0;
   virtual void visit(ClassFnDefineStmt &stmt) = 0;
+  virtual void visit(ClassMemberGetter &stmt) = 0;
+  virtual void visit(ClassMemberSetter &stmt) = 0;
+  virtual void visit(ClassMemberCall &stmt) = 0;
+  virtual void visit(ClassMemberAccess &stmt) = 0;
   virtual void visit(ExprStmt &stmt) = 0;
   virtual void visit(VoidStmt &stmt) = 0;
 };
@@ -111,6 +119,10 @@ public:
   void visit(ClassStmt &stmt) override;
   void visit(ClassField &stmt) override;
   void visit(ClassFnDefineStmt &stmt) override;
+  void visit(ClassMemberGetter &stmt) override;
+  void visit(ClassMemberSetter &stmt) override;
+  void visit(ClassMemberCall &stmt) override;
+  void visit(ClassMemberAccess &stmt) override;
   void visit(ExprStmt &stmt) override;
   void visit(VoidStmt &stmt) override;
 
@@ -400,6 +412,50 @@ public:
                     std::vector<ArgDefineExpr> args, BlockStmt block)
       : _ident(ident), _is_private(is_private), _args(args), _ret_type({}),
         _block(std::move(block)) {}
+
+  void accept(IExprVisitor &visitor) override { visitor.visit(*this); }
+};
+
+class ClassMemberGetter : public Expr {
+  getter(Expr_t, left);
+  getter(Expr_t, right);
+
+public:
+  ClassMemberGetter(Expr_t left, Expr_t right)
+      : _left(std::move(left)), _right(std::move(right)) {}
+
+  void accept(IExprVisitor &visitor) override { visitor.visit(*this); }
+};
+
+class ClassMemberSetter : public Expr {
+  getter(Expr_t, left);
+  getter(Expr_t, right);
+
+public:
+  ClassMemberSetter(Expr_t left, Expr_t right)
+      : _left(std::move(left)), _right(std::move(right)) {}
+
+  void accept(IExprVisitor &visitor) override { visitor.visit(*this); }
+};
+
+class ClassMemberCall : public Expr {
+  getter(Expr_t, method);
+  getter(Expr_t, right);
+
+public:
+  ClassMemberCall(Expr_t method, Expr_t right)
+      : _method(std::move(method)), _right(std::move(right)) {}
+
+  void accept(IExprVisitor &visitor) override { visitor.visit(*this); }
+};
+
+class ClassMemberAccess : public Expr {
+  getter(Expr_t, left);
+  getter(Expr_t, right);
+
+public:
+  ClassMemberAccess(Expr_t left, Expr_t right)
+      : _left(std::move(left)), _right(std::move(right)) {}
 
   void accept(IExprVisitor &visitor) override { visitor.visit(*this); }
 };

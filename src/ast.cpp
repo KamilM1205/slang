@@ -40,11 +40,11 @@ void AST::ExprPrinter::visit(Expr &expr) { ss << "Typical expr" << std::endl; }
 
 void AST::ExprPrinter::visit(ValueExpr &expr) {
   ss << std::format("Value({}; {})", tok2str(expr.value()),
-                    expr.value().getValue());
+                    expr.value().get_value());
 }
 
 void AST::ExprPrinter::visit(AST::FunCallExpr &expr) {
-  ss << "FunCall(" << expr.ident().getValue() << "(";
+  ss << "FunCall(" << expr.ident().get_value() << "(";
   for (size_t i = 0; i < expr.args().size(); i++) {
     if (i > 0)
       ss << ", ";
@@ -99,7 +99,7 @@ void AST::ExprPrinter::visit(AssignExpr &expr) {
   ss << "Assign(";
   tab();
   newline();
-  ss << expr.ident().getValue() << " = ";
+  ss << expr.ident().get_value() << " = ";
   expr.right()->accept(*this);
   newline();
   ss << ")" << std::endl;
@@ -108,7 +108,7 @@ void AST::ExprPrinter::visit(AssignExpr &expr) {
 }
 
 void AST::ExprPrinter::visit(DefineExpr &expr) {
-  ss << "Define(" << expr.ident().getValue() << ": " << tok2str(expr.type());
+  ss << "Define(" << expr.ident().get_value() << ": " << tok2str(expr.type());
   if (expr.expr().has_value()) {
     ss << " = ";
     expr.expr().value()->accept(*this);
@@ -120,11 +120,11 @@ void AST::ExprPrinter::visit(DefineExpr &expr) {
 }
 
 void AST::ExprPrinter::visit(ImportStmt &stmt) {
-  ss << "Import(" << stmt.litteral().getValue() << ")" << std::endl;
+  ss << "Import(" << stmt.litteral().get_value() << ")" << std::endl;
 }
 
 void AST::ExprPrinter::visit(AST::ArgDefineExpr &expr) {
-  ss << "Arg(" << expr.ident().getValue() << ": " << tok2str(expr.type())
+  ss << "Arg(" << expr.ident().get_value() << ": " << tok2str(expr.type())
      << ")";
 }
 
@@ -143,7 +143,7 @@ void AST::ExprPrinter::visit(AST::BlockStmt &stmt) {
 }
 
 void AST::ExprPrinter::visit(AST::FnDefineStmt &stmt) {
-  ss << "FnDef(" << stmt.ident().getValue() << "(";
+  ss << "FnDef(" << stmt.ident().get_value() << "(";
 
   for (size_t i = 0; i < stmt.args().size(); i++) {
     if (i > 0) {
@@ -179,6 +179,7 @@ void AST::ExprPrinter::visit(AST::ExprStmt &stmt) {
   ss << "ExprStmt(";
   stmt.expr()->accept(*this);
   ss << ")";
+  newline();
 }
 
 void AST::ExprPrinter::visit(AST::IfStmt &stmt) {
@@ -218,7 +219,7 @@ void AST::ExprPrinter::visit(AST::ForStmt &stmt) {
 }
 
 void AST::ExprPrinter::visit(AST::InterfaceFnDefineStmt &stmt) {
-  ss << "InterfaceFn(" << stmt.ident().getValue() << "(";
+  ss << "InterfaceFn(" << stmt.ident().get_value() << "(";
 
   for (size_t i = 0; i < stmt.args().size(); i++) {
     if (i > 0) {
@@ -235,7 +236,7 @@ void AST::ExprPrinter::visit(AST::InterfaceFnDefineStmt &stmt) {
 }
 
 void AST::ExprPrinter::visit(AST::InterfaceStmt &stmt) {
-  ss << "Interface(" << stmt.ident().getValue() << " ";
+  ss << "Interface(" << stmt.ident().get_value() << " ";
   stmt.block().accept(*this);
   ss << ")";
   newline();
@@ -243,10 +244,10 @@ void AST::ExprPrinter::visit(AST::InterfaceStmt &stmt) {
 }
 
 void AST::ExprPrinter::visit(AST::ClassStmt &stmt) {
-  ss << "Class(" << stmt.ident().getValue();
+  ss << "Class(" << stmt.ident().get_value();
 
   if (stmt.super().has_value()) {
-    ss << " : " << stmt.super().value().getValue();
+    ss << " : " << stmt.super().value().get_value();
   }
 
   if (stmt.interfaces().has_value() && stmt.interfaces().value().size() > 0) {
@@ -256,7 +257,7 @@ void AST::ExprPrinter::visit(AST::ClassStmt &stmt) {
         ss << ", ";
       }
 
-      ss << stmt.interfaces().value()[i].getValue();
+      ss << stmt.interfaces().value()[i].get_value();
     }
   }
 
@@ -276,7 +277,7 @@ void AST::ExprPrinter::visit(AST::ClassField &stmt) {
     ss << "public ";
   }
 
-  ss << stmt.ident().getValue() << ": " << tok2str(stmt.type()) << ")";
+  ss << stmt.ident().get_value() << ": " << tok2str(stmt.type()) << ")";
 }
 
 void AST::ExprPrinter::visit(AST::ClassFnDefineStmt &stmt) {
@@ -288,7 +289,7 @@ void AST::ExprPrinter::visit(AST::ClassFnDefineStmt &stmt) {
     ss << "public ";
   }
 
-  ss << stmt.ident().getValue() << "(";
+  ss << stmt.ident().get_value() << "(";
   for (size_t i = 0; i < stmt.args().size(); i++) {
     if (i > 0) {
       ss << ", ";
@@ -304,6 +305,62 @@ void AST::ExprPrinter::visit(AST::ClassFnDefineStmt &stmt) {
     ss << "nil ";
   }
   stmt.block().accept(*this);
+}
+
+void AST::ExprPrinter::visit(AST::ClassMemberGetter &stmt) {
+  ss << "ClassMemberGetter(";
+  tab();
+  newline();
+  ss << "left: ";
+  stmt.left()->accept(*this);
+  newline();
+  ss << "right: ";
+  stmt.right()->accept(*this);
+  untab();
+  ss << ")";
+  newline();
+}
+
+void AST::ExprPrinter::visit(AST::ClassMemberSetter &stmt) {
+  ss << "ClassMemberSetter(";
+  tab();
+  newline();
+  ss << "left: ";
+  stmt.left()->accept(*this);
+  newline();
+  ss << "right: ";
+  stmt.right()->accept(*this);
+  untab();
+  ss << ")";
+  newline();
+}
+
+void AST::ExprPrinter::visit(AST::ClassMemberCall &stmt) {
+  ss << "ClassMemberCall(";
+  tab();
+  newline();
+  ss << "method: ";
+  stmt.method()->accept(*this);
+  newline();
+  ss << "right: ";
+  stmt.right()->accept(*this);
+  untab();
+  ss << ")";
+  newline();
+}
+
+void AST::ExprPrinter::visit(AST::ClassMemberAccess &stmt) {
+  ss << "ClassMemberAccess(";
+  tab();
+  newline();
+  ss << "left expr: ";
+  stmt.left()->accept(*this);
+  newline();
+  ss << " right expr: ";
+  stmt.right()->accept(*this);
+  untab();
+  ss << ")";
+  newline();
 }
 
 void AST::ExprPrinter::visit(AST::VoidStmt &stmt) {
