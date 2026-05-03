@@ -1,4 +1,6 @@
-stmt::= <import> | <block> | <if> | <while> | <for> | <var> | <assign> | <count_assign> | <fn> | <return> | <fn_call> | <interface> | <class>
+stmt::= <import> | <block> | <if> | <while> | <for> | <var> | <assign>
+                 | <count_assign> | <fn> | <return> | <fn_call>
+                 | <interface> | <class> | <class_member_setter>
 
 class::= 'class' <ident> [':' <ident>] ['<' <ident> [',' <ident>]*] <class_block>
 class_block::= '{' (<class_field> | <class_method>)+ '}'
@@ -7,7 +9,6 @@ class_method::= ['_']<ident> '(' <args> ')' [':' <type>] <block>
 interface::= 'interface' <ident> <intf_block>
 intf_block::= '{' <oop_fn>* '}'
 oop_fn::= <ident> '(' <args> ')' [':' <type>] ';'
-class_member_access::= <primary> ['.' <primary>]+
 
 fn::= 'fn' <ident> '(' <args> ')' [':' <type>] <block>
 return::= 'return' <expression> ';'
@@ -20,6 +21,7 @@ count_assign::= <ident> ('+=' | '-=' | '*=' | '/=' | '%=') <expr> ';'
 args_call::= (<expr> (',' <expr>)*)?
 args::= ( <ident> ':' <type> ( ',' <ident> ':' <type> )* )?
 import::= 'import' <litteral> ';'
+
 
 fn_call::= <ident> '(' <args_call> ')'
 assign::= <ident> '=' <ternary_expr> ';'
@@ -35,7 +37,10 @@ increment::= <increment_prefix> | <increment_postfix>
 increment_prefix::= ('++' | '--') <increment_postfix> | <increment_postfix>
 increment_postfix::= <unary> ('++' | '--') | <unary>
 unary::= ('+' | '-' | '!') <unary> | <primary>
-primary::= <ident> | <number> | <litteral> | <bool> | '(' <expr> ')' | <fn_call> | <class_member_access>
+atom::= <ident> | '(' <expr> ')' | <fn_call>
+class_member_getter::= <atom> ('.' (<ident> | <fn_call>))*
+class_member_setter::= <class_member_getter> '=' <expr> ';'
+primary::= <number> | <litteral> | <bool> | <class_member_getter>
 litteral::= '"'.*'"'
 bool::= 'true' | 'false'
 number::= ('+' | '-') (<integer> | <float>)
