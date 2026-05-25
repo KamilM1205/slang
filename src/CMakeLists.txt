@@ -8,6 +8,9 @@ set(
   lexer.cpp
   parser.cpp
   context.cpp
+  interpreter.cpp
+  value.cpp
+  stdlib.cpp
 )
 
 list(TRANSFORM SOURCES PREPEND ${CMAKE_CURRENT_LIST_DIR}/)
