@@ -213,41 +213,39 @@ SLang::Value &SLang::Value::operator+(std::string &value) {
 }
 
 SLang::Value &SLang::Value::operator++() {
-  if (std::holds_alternative<RefType>(data)) {
-    std::visit(
-        [](auto &d) {
-          using T = std::decay_t<decltype(d)>;
-          if constexpr (!can_increment<T>) {
-            throw std::runtime_error(std::format(
-                "Cannot increment given type: {}", typeid(T).name()));
-          } else {
-            d++;
-          }
-        },
-        get_last_ref(std::get<RefType>(data))->data);
-  } else {
-    throw std::runtime_error("Expected numerical value for increment.");
-  }
+  auto &data = (std::holds_alternative<RefType>(this->data))
+                   ? get_last_ref(std::get<RefType>(this->data))->data
+                   : this->data;
+  std::visit(
+      [](auto &d) {
+        using T = std::decay_t<decltype(d)>;
+        if constexpr (!can_increment<T>) {
+          throw std::runtime_error(
+              std::format("Cannot increment given type: {}", typeid(T).name()));
+        } else {
+          d++;
+        }
+      },
+      data);
 
   return *this;
 }
 
 SLang::Value &SLang::Value::operator--() {
-  if (std::holds_alternative<RefType>(data)) {
-    std::visit(
-        [](auto &d) {
-          using T = std::decay_t<decltype(d)>;
-          if constexpr (!can_decrement<T>) {
-            throw std::runtime_error(std::format(
-                "Cannot decrement given type: {}", typeid(T).name()));
-          } else {
-            d--;
-          }
-        },
-        get_last_ref(std::get<RefType>(data))->data);
-  } else {
-    throw std::runtime_error("Expected numerical value for increment.");
-  }
+  auto &data = (std::holds_alternative<RefType>(this->data))
+                   ? get_last_ref(std::get<RefType>(this->data))->data
+                   : this->data;
+  std::visit(
+      [](auto &d) {
+        using T = std::decay_t<decltype(d)>;
+        if constexpr (!can_decrement<T>) {
+          throw std::runtime_error(
+              std::format("Cannot decrement given type: {}", typeid(T).name()));
+        } else {
+          d--;
+        }
+      },
+      data);
 
   return *this;
 }
