@@ -7,7 +7,6 @@
 #include "token.hpp"
 #include <format>
 #include <initializer_list>
-#include <iostream>
 #include <memory>
 #include <optional>
 #include <vector>
@@ -114,9 +113,15 @@ bool SLang::Parser::is_type() {
 auto SLang::Parser::parse_value() -> AST::Expr_t {
   AST::Expr_t expr;
 
-  // TODO: think about containing values
-  expr = std::unique_ptr<AST::ValueExpr>(new AST::ValueExpr(curr_tok()));
-  next();
+  if (match({TokenType::TRUE, TokenType::FALSE, TokenType::NUMBER,
+             TokenType::LITTERAL, TokenType::IDENTIFIER})) {
+    expr = std::unique_ptr<AST::ValueExpr>(new AST::ValueExpr(curr_tok()));
+    next();
+  } else {
+    econ->add_msg(MessageType::ERR, curr_tok(), ERROR_EXPECTED_VALUE,
+                  tok2str(curr_tok()));
+    panic();
+  }
 
   return std::move(expr);
 }

@@ -34,6 +34,7 @@ extern const char *ERROR_INTERFACE_METHOD_PRIVATE;
 extern const char *ERROR_EXPECTED_MEMBER_ACCESS;
 extern const char *ERROR_EXPECTED_MEMBER_OP;
 extern const char *ERROR_VARIABLE_DEFINITION;
+extern const char *ERROR_EXPECTED_VALUE;
 } // namespace SLang
 
 #endif // !ERRORS_HPP

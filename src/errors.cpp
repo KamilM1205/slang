@@ -35,3 +35,4 @@ const char *SLang::ERROR_EXPECTED_MEMBER_OP =
     "Expected class member assign or method call.";
 const char *SLang::ERROR_VARIABLE_DEFINITION =
     "Expected variable type or expression for type detection.";
+const char *SLang::ERROR_EXPECTED_VALUE = "Expexted value found: {}.";
