@@ -7,6 +7,8 @@
 #ifndef ERRORS_HPP
 #define ERRORS_HPP
 
+namespace SLang {
+
 /* Lexer errors */
 extern const char *ERROR_LINE_OVERFLOW;
 extern const char *ERROR_INDEX_OVERFLOW;
@@ -31,5 +33,7 @@ extern const char *ERROR_ALREADY_BEGIN;
 extern const char *ERROR_INTERFACE_METHOD_PRIVATE;
 extern const char *ERROR_EXPECTED_MEMBER_ACCESS;
 extern const char *ERROR_EXPECTED_MEMBER_OP;
+extern const char *ERROR_VARIABLE_DEFINITION;
+} // namespace SLang
 
 #endif // !ERRORS_HPP
