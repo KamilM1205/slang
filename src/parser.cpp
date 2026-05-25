@@ -234,7 +234,10 @@ auto SLang::Parser::parse_primary() -> AST::Expr_t {
     } else {
       expr = parse_value();
     }
+  } else {
+    expr = parse_value();
   }
+
   return std::move(expr);
 }
 
@@ -928,7 +931,7 @@ SLang::AST::ASTree &SLang::Parser::parse(Lexer *lexer) {
     tree.add_expression(parse_stmt());
   }
 
-  std::cout << tree.to_string() << std::endl;
+  // std::cout << tree.to_string() << std::endl;
 
   return tree;
 }
