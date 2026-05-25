@@ -4,6 +4,8 @@
 #include <string>
 #include <unordered_map>
 
+namespace SLang {
+
 enum class NumberNotation {
   BIN,
   HEX,
@@ -136,5 +138,7 @@ public:
 
   bool empty() { return type == TokenType::NONE && value.empty(); }
 };
+
+} // namespace SLang
 
 #endif // !TOKEN_HPP

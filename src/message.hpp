@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+namespace SLang {
+
 enum class MessageType {
   INFO,
   WARN,
@@ -104,5 +106,6 @@ public:
   MessageContainer(MessageContainer &e) = delete;
   MessageContainer &operator=(const MessageContainer &e) = delete;
 };
+} // namespace SLang
 
 #endif // _ERROR_HPP

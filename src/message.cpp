@@ -19,19 +19,19 @@
 /*
  * @brief Глобальный экземпляр контейнера ошибок.
  */
-MessageContainer *MessageContainer::instance = nullptr;
+SLang::MessageContainer *SLang::MessageContainer::instance = nullptr;
 
-std::optional<size_t> Message::get_line() { return line; }
+std::optional<size_t> SLang::Message::get_line() { return line; }
 
-std::optional<size_t> Message::get_column() { return column; }
+std::optional<size_t> SLang::Message::get_column() { return column; }
 
-std::optional<std::string> Message::get_line_src() { return line_src; }
+std::optional<std::string> SLang::Message::get_line_src() { return line_src; }
 
-std::string Message::get_message() { return message; }
+std::string SLang::Message::get_message() { return message; }
 
-MessageType Message::get_msg_type() { return type; }
+SLang::MessageType SLang::Message::get_msg_type() { return type; }
 
-MessageContainer *MessageContainer::get_instance() {
+SLang::MessageContainer *SLang::MessageContainer::get_instance() {
   if (instance == nullptr) {
     instance = new MessageContainer();
   }
@@ -39,22 +39,23 @@ MessageContainer *MessageContainer::get_instance() {
   return instance;
 }
 
-void MessageContainer::add_msg(MessageType type, std::string message) {
+void SLang::MessageContainer::add_msg(MessageType type, std::string message) {
   errors.push_back(Message(type, message));
 }
 
-void MessageContainer::add_msg(MessageType type, size_t line, size_t column,
-                               std::string message) {
+void SLang::MessageContainer::add_msg(MessageType type, size_t line,
+                                      size_t column, std::string message) {
   errors.push_back(Message(type, line, column, message));
 }
 
-void MessageContainer::add_msg(MessageType type, size_t line, size_t column,
-                               std::string line_src, std::string message) {
+void SLang::MessageContainer::add_msg(MessageType type, size_t line,
+                                      size_t column, std::string line_src,
+                                      std::string message) {
   errors.push_back(Message(type, line, column, line_src, message));
 }
 
-auto MessageContainer::get_line(const Token &token) -> std::string {
-  size_t count = 0;
+auto SLang::MessageContainer::get_line(const Token &token) -> std::string {
+  size_t count = 1;
 
   for (auto i = token.index() - token.column() + 1; i < src->size(); i++) {
     if (src->at(i) == '\n') {
@@ -71,7 +72,7 @@ auto MessageContainer::get_line(const Token &token) -> std::string {
  * Транслирует массив ошибок в строку хранящее цельное и отформатированное
  * сообщение
  */
-std::string MessageContainer::to_string() {
+std::string SLang::MessageContainer::to_string() {
   std::stringstream ss;
 
   for (auto error : errors) {
@@ -111,8 +112,8 @@ std::string MessageContainer::to_string() {
   return ss.str();
 }
 
-void MessageContainer::set_src(std::string *src) { this->src = src; }
+void SLang::MessageContainer::set_src(std::string *src) { this->src = src; }
 
-void MessageContainer::clear() { errors.clear(); }
+void SLang::MessageContainer::clear() { errors.clear(); }
 
-bool MessageContainer::empty() const { return errors.empty(); }
+bool SLang::MessageContainer::empty() const { return errors.empty(); }
