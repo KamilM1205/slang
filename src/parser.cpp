@@ -14,20 +14,20 @@
 
 // TODO: write comments for all parser's functions
 
-Parser::Parser() {
+SLang::Parser::Parser() {
   econ = MessageContainer::get_instance();
   index = 0;
 }
 
-void Parser::set_source(const std::string &source) {
+void SLang::Parser::set_source(const std::string &source) {
   lexer->set_source(source);
 }
 
-void Parser::set_source(std::string &&source) {
+void SLang::Parser::set_source(std::string &&source) {
   lexer->set_source(std::move(source));
 }
 
-bool Parser::match(std::initializer_list<TokenType> token_types) const {
+bool SLang::Parser::match(std::initializer_list<TokenType> token_types) const {
   for (auto type : token_types) {
     if (type == curr_tok().get_type()) {
       return true;
@@ -37,7 +37,7 @@ bool Parser::match(std::initializer_list<TokenType> token_types) const {
   return false;
 }
 
-bool Parser::peek(std::initializer_list<TokenType> token_types) const {
+bool SLang::Parser::peek(std::initializer_list<TokenType> token_types) const {
   TokenType tt = lexer->getTokens()[index + 1].get_type();
 
   for (auto type : token_types) {
@@ -49,11 +49,11 @@ bool Parser::peek(std::initializer_list<TokenType> token_types) const {
   return false;
 }
 
-auto Parser::curr_tok() const -> const Token & {
+auto SLang::Parser::curr_tok() const -> const Token & {
   return lexer->getTokens()[index];
 }
 
-void Parser::next() {
+void SLang::Parser::next() {
   if (curr_tok().get_type() != TokenType::_EOF) {
     index++;
   } else {
@@ -61,7 +61,7 @@ void Parser::next() {
   }
 }
 
-auto Parser::pervious() const -> const Token & {
+auto SLang::Parser::pervious() const -> const Token & {
   if (index > 0) {
     return lexer->getTokens()[index - 1];
   } else {
@@ -72,7 +72,7 @@ auto Parser::pervious() const -> const Token & {
   return curr_tok();
 }
 
-auto Parser::consume(TokenType type) -> Token {
+auto SLang::Parser::consume(TokenType type) -> Token {
   Token token = curr_tok();
 
   if (token.get_type() == type) {
@@ -88,7 +88,7 @@ auto Parser::consume(TokenType type) -> Token {
   return Token();
 }
 
-auto Parser::consume(TokenType type, std::string msg) -> Token {
+auto SLang::Parser::consume(TokenType type, std::string msg) -> Token {
   Token token = curr_tok();
 
   if (token.get_type() == type) {
@@ -102,7 +102,7 @@ auto Parser::consume(TokenType type, std::string msg) -> Token {
   return Token();
 }
 
-bool Parser::is_type() {
+bool SLang::Parser::is_type() {
   if (match({TokenType::IDENTIFIER, TokenType::BOOL, TokenType::INT,
              TokenType::FLOAT, TokenType::STRING, TokenType::USTRING})) {
     return true;
@@ -111,7 +111,7 @@ bool Parser::is_type() {
   return false;
 }
 
-auto Parser::parse_value() -> AST::Expr_t {
+auto SLang::Parser::parse_value() -> AST::Expr_t {
   AST::Expr_t expr;
 
   // TODO: think about containing values
@@ -121,7 +121,7 @@ auto Parser::parse_value() -> AST::Expr_t {
   return std::move(expr);
 }
 
-auto Parser::parse_fun_call() -> AST::Expr_t {
+auto SLang::Parser::parse_fun_call() -> AST::Expr_t {
   Token ident = consume(TokenType::IDENTIFIER);
   std::vector<AST::Expr_t> args;
 
@@ -142,7 +142,7 @@ auto Parser::parse_fun_call() -> AST::Expr_t {
       new AST::FunCallExpr(ident, std::move(args)));
 }
 
-auto Parser::parse_atom() -> AST::Expr_t {
+auto SLang::Parser::parse_atom() -> AST::Expr_t {
   AST::Expr_t expr;
 
   if (match({TokenType::IDENTIFIER}) && peek({TokenType::BR_BEGIN})) {
@@ -159,7 +159,7 @@ auto Parser::parse_atom() -> AST::Expr_t {
   return std::move(expr);
 }
 
-auto Parser::parse_class_member() -> AST::Expr_t {
+auto SLang::Parser::parse_class_member() -> AST::Expr_t {
   if (peek({TokenType::DOT})) {
     auto left = std::unique_ptr<AST::ValueExpr>(new AST::ValueExpr(curr_tok()));
     next(); // Skip identifier
@@ -194,7 +194,7 @@ auto Parser::parse_class_member() -> AST::Expr_t {
   }
 }
 
-auto Parser::parse_class_member_access() -> AST::Expr_t {
+auto SLang::Parser::parse_class_member_access() -> AST::Expr_t {
   AST::Expr_t left = std::move(parse_atom());
   std::optional<AST::Expr_t> right = {};
 
@@ -223,7 +223,7 @@ auto Parser::parse_class_member_access() -> AST::Expr_t {
   }
 }
 
-auto Parser::parse_primary() -> AST::Expr_t {
+auto SLang::Parser::parse_primary() -> AST::Expr_t {
   AST::Expr_t expr;
 
   if (match({TokenType::IDENTIFIER, TokenType::NUMBER, TokenType::LITTERAL,
@@ -238,7 +238,7 @@ auto Parser::parse_primary() -> AST::Expr_t {
   return std::move(expr);
 }
 
-auto Parser::parse_unary() -> AST::Expr_t {
+auto SLang::Parser::parse_unary() -> AST::Expr_t {
   Token op;
   AST::Expr_t expr;
 
@@ -254,7 +254,7 @@ auto Parser::parse_unary() -> AST::Expr_t {
       new AST::UnaryExpr(op, std::move(expr)));
 }
 
-auto Parser::parse_increment_postfix() -> AST::Expr_t {
+auto SLang::Parser::parse_increment_postfix() -> AST::Expr_t {
   Token op;
   AST::Expr_t expr = parse_unary();
 
@@ -269,7 +269,7 @@ auto Parser::parse_increment_postfix() -> AST::Expr_t {
   return std::move(expr);
 }
 
-auto Parser::parse_increment_prefix() -> AST::Expr_t {
+auto SLang::Parser::parse_increment_prefix() -> AST::Expr_t {
   Token op;
   AST::Expr_t expr;
 
@@ -287,12 +287,29 @@ auto Parser::parse_increment_prefix() -> AST::Expr_t {
   return std::move(expr);
 }
 
-auto Parser::parse_factor() -> AST::Expr_t {
+auto SLang::Parser::parse_factor() -> AST::Expr_t {
   auto expr = parse_increment_prefix();
   Token op;
   AST::Expr_t right;
 
   while (match({TokenType::STAR, TokenType::SLASH, TokenType::PERCENT})) {
+    op = curr_tok();
+    next();
+    right = parse_increment_prefix();
+
+    expr = std::unique_ptr<AST::BinaryExpr>(
+        new AST::BinaryExpr(std::move(expr), op, std::move(right)));
+  }
+
+  return std::move(expr);
+}
+
+auto SLang::Parser::parse_term() -> AST::Expr_t {
+  auto expr = parse_factor();
+  Token op;
+  AST::Expr_t right;
+
+  while (match({TokenType::PLUS, TokenType::MINUS})) {
     op = curr_tok();
     next();
     right = parse_factor();
@@ -304,24 +321,7 @@ auto Parser::parse_factor() -> AST::Expr_t {
   return std::move(expr);
 }
 
-auto Parser::parse_term() -> AST::Expr_t {
-  auto expr = parse_factor();
-  Token op;
-  AST::Expr_t right;
-
-  while (match({TokenType::PLUS, TokenType::MINUS})) {
-    op = curr_tok();
-    next();
-    right = parse_term();
-
-    return std::unique_ptr<AST::BinaryExpr>(
-        new AST::BinaryExpr(std::move(expr), op, std::move(right)));
-  }
-
-  return std::move(expr);
-}
-
-auto Parser::parse_compare() -> AST::Expr_t {
+auto SLang::Parser::parse_compare() -> AST::Expr_t {
   auto expr = parse_term();
   Token op;
   AST::Expr_t right;
@@ -339,7 +339,7 @@ auto Parser::parse_compare() -> AST::Expr_t {
   return std::move(expr);
 }
 
-auto Parser::parse_and() -> AST::Expr_t {
+auto SLang::Parser::parse_and() -> AST::Expr_t {
   auto expr = parse_compare();
   Token op;
   AST::Expr_t right;
@@ -356,7 +356,7 @@ auto Parser::parse_and() -> AST::Expr_t {
   return std::move(expr);
 }
 
-auto Parser::parse_or() -> AST::Expr_t {
+auto SLang::Parser::parse_or() -> AST::Expr_t {
   auto expr = parse_and();
   Token op;
   AST::Expr_t right;
@@ -373,9 +373,11 @@ auto Parser::parse_or() -> AST::Expr_t {
   return std::move(expr);
 }
 
-auto Parser::parse_condition() -> AST::Expr_t { return std::move(parse_or()); }
+auto SLang::Parser::parse_condition() -> AST::Expr_t {
+  return std::move(parse_or());
+}
 
-auto Parser::parse_ternary() -> AST::Expr_t {
+auto SLang::Parser::parse_ternary() -> AST::Expr_t {
   AST::Expr_t cond;
 
   if (match({TokenType::BR_BEGIN})) {
@@ -400,11 +402,11 @@ auto Parser::parse_ternary() -> AST::Expr_t {
   return std::move(cond);
 }
 
-auto Parser::parse_expression() -> AST::Expr_t {
+auto SLang::Parser::parse_expression() -> AST::Expr_t {
   return std::move(parse_ternary());
 }
 
-auto Parser::parse_define() -> AST::DefineExpr {
+auto SLang::Parser::parse_define() -> AST::DefineExpr {
   Token ident;
   Token value_type;
   std::optional<AST::Expr_t> expr;
@@ -432,16 +434,21 @@ auto Parser::parse_define() -> AST::DefineExpr {
     expr = std::move(parse_expression());
   }
 
+  if (!expr.has_value() && value_type.get_type() == TokenType::AUTO) {
+    econ->add_msg(MessageType::ERR, curr_tok(), ERROR_VARIABLE_DEFINITION);
+    panic();
+  }
+
   consume(TokenType::SEMICOLON);
 
   if (expr.has_value()) {
     return AST::DefineExpr(ident, value_type, std::move(expr.value()));
-  } else {
-    return AST::DefineExpr(ident, value_type);
   }
+
+  return AST::DefineExpr(ident, value_type);
 }
 
-auto Parser::parse_assign() -> AST::Expr_t {
+auto SLang::Parser::parse_assign() -> AST::Expr_t {
   Token ident;
   AST::Expr_t expr;
 
@@ -459,7 +466,7 @@ auto Parser::parse_assign() -> AST::Expr_t {
   return std::move(expr);
 }
 
-auto Parser::parse_import() -> AST::ImportStmt {
+auto SLang::Parser::parse_import() -> AST::ImportStmt {
   Token litteral;
 
   litteral = consume(TokenType::LITTERAL);
@@ -469,7 +476,7 @@ auto Parser::parse_import() -> AST::ImportStmt {
   return AST::ImportStmt(litteral);
 }
 
-auto Parser::parse_expression_stmt() -> AST::Expr_t {
+auto SLang::Parser::parse_expression_stmt() -> AST::Expr_t {
   AST::Expr_t expr = parse_assign();
 
   consume(TokenType::SEMICOLON);
@@ -477,7 +484,7 @@ auto Parser::parse_expression_stmt() -> AST::Expr_t {
   return std::move(expr);
 }
 
-auto Parser::parse_block() -> AST::BlockStmt {
+auto SLang::Parser::parse_block() -> AST::BlockStmt {
   std::vector<AST::Expr_t> stmts;
   AST::Expr_t stmt;
 
@@ -503,7 +510,7 @@ auto Parser::parse_block() -> AST::BlockStmt {
   return AST::BlockStmt(std::move(stmts));
 }
 
-auto Parser::parse_arg_define() -> AST::ArgDefineExpr {
+auto SLang::Parser::parse_arg_define() -> AST::ArgDefineExpr {
   Token ident = consume(TokenType::IDENTIFIER);
   consume(TokenType::COLON);
   Token type;
@@ -520,7 +527,7 @@ auto Parser::parse_arg_define() -> AST::ArgDefineExpr {
   return AST::ArgDefineExpr(ident, type);
 }
 
-auto Parser::parse_args() -> std::vector<AST::ArgDefineExpr> {
+auto SLang::Parser::parse_args() -> std::vector<AST::ArgDefineExpr> {
   std::vector<AST::ArgDefineExpr> args;
 
   do {
@@ -534,7 +541,7 @@ auto Parser::parse_args() -> std::vector<AST::ArgDefineExpr> {
   return args;
 }
 
-auto Parser::parse_fn_define() -> AST::FnDefineStmt {
+auto SLang::Parser::parse_fn_define() -> AST::FnDefineStmt {
   Token ident = consume(TokenType::IDENTIFIER);
   std::vector<AST::ArgDefineExpr> args;
   std::optional<Token> ret_type;
@@ -568,17 +575,16 @@ auto Parser::parse_fn_define() -> AST::FnDefineStmt {
   }
 }
 
-auto Parser::parse_return() -> AST::ReturnStmt {
+auto SLang::Parser::parse_return() -> AST::ReturnStmt {
   AST::Expr_t expr = parse_expression();
   consume(TokenType::SEMICOLON);
 
   return AST::ReturnStmt(std::move(expr));
 }
 
-auto Parser::parse_elif_stmt() -> AST::IfStmt {
+auto SLang::Parser::parse_elif_stmt() -> AST::IfStmt {
   AST::Expr_t cond;
   AST::BlockStmt block;
-  std::optional<AST::Expr_t> elif_block;
 
   consume(TokenType::BR_BEGIN);
   cond = parse_condition();
@@ -586,20 +592,13 @@ auto Parser::parse_elif_stmt() -> AST::IfStmt {
 
   block = std::move(parse_block());
 
-  if (match({TokenType::ELIF})) {
-    next();
-    elif_block =
-        std::unique_ptr<AST::IfStmt>(new AST::IfStmt(parse_elif_stmt()));
-  }
-
-  return AST::IfStmt(std::move(cond), std::move(block), std::move(elif_block),
-                     {});
+  return AST::IfStmt(std::move(cond), std::move(block), {}, {});
 }
 
-auto Parser::parse_if_stmt() -> AST::IfStmt {
+auto SLang::Parser::parse_if_stmt() -> AST::IfStmt {
   AST::Expr_t cond;
   AST::BlockStmt true_block;
-  std::optional<AST::Expr_t> elif;
+  std::vector<std::unique_ptr<AST::IfStmt>> elif;
   std::optional<AST::BlockStmt> else_block;
 
   consume(TokenType::BR_BEGIN);
@@ -608,9 +607,10 @@ auto Parser::parse_if_stmt() -> AST::IfStmt {
 
   true_block = std::move(parse_block());
 
-  if (match({TokenType::ELIF})) {
+  while (match({TokenType::ELIF})) {
     next();
-    elif = std::unique_ptr<AST::IfStmt>(new AST::IfStmt(parse_elif_stmt()));
+    elif.push_back(
+        std::unique_ptr<AST::IfStmt>(new AST::IfStmt(parse_elif_stmt())));
   }
 
   if (match({TokenType::ELSE})) {
@@ -622,7 +622,7 @@ auto Parser::parse_if_stmt() -> AST::IfStmt {
                      std::move(else_block));
 }
 
-auto Parser::parse_while_stmt() -> AST::WhileStmt {
+auto SLang::Parser::parse_while_stmt() -> AST::WhileStmt {
   AST::Expr_t cond;
   AST::BlockStmt block;
 
@@ -635,7 +635,7 @@ auto Parser::parse_while_stmt() -> AST::WhileStmt {
   return AST::WhileStmt(std::move(cond), std::move(block));
 }
 
-auto Parser::parse_for_stmt() -> AST::ForStmt {
+auto SLang::Parser::parse_for_stmt() -> AST::ForStmt {
   AST::Expr_t init;
   AST::Expr_t cond;
   AST::Expr_t step;
@@ -659,11 +659,13 @@ auto Parser::parse_for_stmt() -> AST::ForStmt {
 
   consume(TokenType::BR_END);
 
+  block = parse_block();
+
   return AST::ForStmt(std::move(init), std::move(cond), std::move(step),
                       std::move(block));
 }
 
-auto Parser::parse_class_field(Token &identifier) -> AST::ClassField {
+auto SLang::Parser::parse_class_field(Token &identifier) -> AST::ClassField {
   Token type;
   bool is_private = false;
 
@@ -686,7 +688,8 @@ auto Parser::parse_class_field(Token &identifier) -> AST::ClassField {
   return AST::ClassField(identifier, is_private, type);
 }
 
-auto Parser::parse_class_method(Token &identifier) -> AST::ClassFnDefineStmt {
+auto SLang::Parser::parse_class_method(Token &identifier)
+    -> AST::ClassFnDefineStmt {
   bool is_private = false;
   std::vector<AST::ArgDefineExpr> args;
   std::optional<Token> ret_type;
@@ -727,7 +730,7 @@ auto Parser::parse_class_method(Token &identifier) -> AST::ClassFnDefineStmt {
   }
 }
 
-auto Parser::parse_class_block() -> AST::BlockStmt {
+auto SLang::Parser::parse_class_block() -> AST::BlockStmt {
   std::vector<AST::Expr_t> stmts;
   consume(TokenType::BLK_BEGIN);
 
@@ -756,7 +759,7 @@ auto Parser::parse_class_block() -> AST::BlockStmt {
   return AST::BlockStmt(std::move(stmts));
 }
 
-auto Parser::parse_class_stmt() -> AST::ClassStmt {
+auto SLang::Parser::parse_class_stmt() -> AST::ClassStmt {
   Token ident = consume(TokenType::IDENTIFIER);
   std::optional<Token> super;
   std::optional<std::vector<Token>> interfaces;
@@ -790,7 +793,7 @@ auto Parser::parse_class_stmt() -> AST::ClassStmt {
                         std::move(block));
 }
 
-auto Parser::parse_interface_fn() -> AST::InterfaceFnDefineStmt {
+auto SLang::Parser::parse_interface_fn() -> AST::InterfaceFnDefineStmt {
   Token ident = consume(TokenType::IDENTIFIER);
   std::vector<AST::ArgDefineExpr> args;
   std::optional<Token> ret_type;
@@ -833,7 +836,7 @@ auto Parser::parse_interface_fn() -> AST::InterfaceFnDefineStmt {
   }
 }
 
-auto Parser::parse_interface_block() -> AST::BlockStmt {
+auto SLang::Parser::parse_interface_block() -> AST::BlockStmt {
   std::vector<AST::Expr_t> stmts;
 
   consume(TokenType::BLK_BEGIN);
@@ -847,14 +850,14 @@ auto Parser::parse_interface_block() -> AST::BlockStmt {
   return AST::BlockStmt(std::move(stmts));
 }
 
-auto Parser::parse_interface_stmt() -> AST::InterfaceStmt {
+auto SLang::Parser::parse_interface_stmt() -> AST::InterfaceStmt {
   Token ident = consume(TokenType::IDENTIFIER);
   AST::BlockStmt block = parse_interface_block();
 
   return AST::InterfaceStmt(ident, std::move(block));
 }
 
-auto Parser::parse_stmt() -> AST::Expr_t {
+auto SLang::Parser::parse_stmt() -> AST::Expr_t {
   switch (curr_tok().get_type()) {
   case TokenType::VAR:
     next();
@@ -914,11 +917,11 @@ auto Parser::parse_stmt() -> AST::Expr_t {
   return std::unique_ptr<AST::VoidStmt>(new AST::VoidStmt());
 }
 
-void Parser::parse(Lexer *lexer) {
+SLang::AST::ASTree &SLang::Parser::parse(Lexer *lexer) {
   this->lexer = lexer;
 
   if (lexer->getTokens().empty()) {
-    return;
+    return tree;
   }
 
   while (curr_tok().get_type() != TokenType::_EOF) {
@@ -926,4 +929,6 @@ void Parser::parse(Lexer *lexer) {
   }
 
   std::cout << tree.to_string() << std::endl;
+
+  return tree;
 }

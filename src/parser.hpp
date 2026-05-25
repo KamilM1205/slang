@@ -6,6 +6,8 @@
 #include "message.hpp"
 #include <initializer_list>
 
+namespace SLang {
+
 class Parser {
 private:
   size_t index;
@@ -70,7 +72,8 @@ public:
   void set_source(const std::string &source);
   void set_source(std::string &&source);
 
-  void parse(Lexer *lexer);
+  AST::ASTree &parse(Lexer *lexer);
 };
+} // namespace SLang
 
-#endif // !PARSER_HPP
+#endif // !PARSER_HP
