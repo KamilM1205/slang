@@ -22,6 +22,8 @@
 
 // TODO: Add documentation
 
+namespace SLang {
+
 namespace AST {
 
 class Expr;
@@ -292,11 +294,12 @@ public:
 class IfStmt : public Expr {
   getter(Expr_t, cond);
   getter(BlockStmt, true_block);
-  getter(std::optional<Expr_t>, elif_block);
+  getter(std::vector<std::unique_ptr<IfStmt>>, elif_block);
   getter(std::optional<BlockStmt>, else_block);
 
 public:
-  IfStmt(Expr_t cond, BlockStmt true_block, std::optional<Expr_t> elif_block,
+  IfStmt(Expr_t cond, BlockStmt true_block,
+         std::vector<std::unique_ptr<IfStmt>> elif_block,
          std::optional<BlockStmt> else_block)
       : _cond(std::move(cond)), _true_block(std::move(true_block)),
         _elif_block(std::move(elif_block)), _else_block(std::move(else_block)) {
@@ -485,8 +488,11 @@ public:
   void add_expression(Expr_t expr) { stmts.push_back(std::move(expr)); }
 
   auto to_string() -> std::string;
+
+  auto get_stmts() -> std::vector<Expr_t> *;
 };
 
 } // namespace AST
+} // namespace SLang
 
 #endif // !AST_HPP

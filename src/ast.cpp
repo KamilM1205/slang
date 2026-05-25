@@ -15,15 +15,15 @@
 #include <sstream>
 #include <stdexcept>
 
-void AST::ExprPrinter::tab() { indent_level++; }
+void SLang::AST::ExprPrinter::tab() { indent_level++; }
 
-void AST::ExprPrinter::indent() {
+void SLang::AST::ExprPrinter::indent() {
   for (size_t i = 0; i < indent_level; i++) {
     ss << "  ";
   }
 }
 
-void AST::ExprPrinter::untab(const std::source_location &location) {
+void SLang::AST::ExprPrinter::untab(const std::source_location &location) {
   if (indent_level == 0) {
     throw std::runtime_error(
         std::format("Trying to untab 0 indent at: {}", location.line()));
@@ -31,19 +31,21 @@ void AST::ExprPrinter::untab(const std::source_location &location) {
   indent_level--;
 }
 
-void AST::ExprPrinter::newline() {
+void SLang::AST::ExprPrinter::newline() {
   ss << std::endl;
   indent();
 }
 
-void AST::ExprPrinter::visit(Expr &expr) { ss << "Typical expr" << std::endl; }
+void SLang::AST::ExprPrinter::visit(Expr &expr) {
+  ss << "Typical expr" << std::endl;
+}
 
-void AST::ExprPrinter::visit(ValueExpr &expr) {
+void SLang::AST::ExprPrinter::visit(ValueExpr &expr) {
   ss << std::format("Value({}; {})", tok2str(expr.value()),
                     expr.value().get_value());
 }
 
-void AST::ExprPrinter::visit(AST::FunCallExpr &expr) {
+void SLang::AST::ExprPrinter::visit(SLang::AST::FunCallExpr &expr) {
   ss << "FunCall(" << expr.ident().get_value() << "(";
   for (size_t i = 0; i < expr.args().size(); i++) {
     if (i > 0)
@@ -53,19 +55,19 @@ void AST::ExprPrinter::visit(AST::FunCallExpr &expr) {
   ss << "))";
 }
 
-void AST::ExprPrinter::visit(GroupingExpr &expr) {
+void SLang::AST::ExprPrinter::visit(GroupingExpr &expr) {
   ss << "Grouping(";
   expr.expr()->accept(*this);
   ss << ")";
 }
 
-void AST::ExprPrinter::visit(UnaryExpr &expr) {
+void SLang::AST::ExprPrinter::visit(UnaryExpr &expr) {
   ss << std::format("Unary({} ", tok2str(expr.op()));
   expr.right()->accept(*this);
   ss << ")";
 }
 
-void AST::ExprPrinter::visit(BinaryExpr &expr) {
+void SLang::AST::ExprPrinter::visit(BinaryExpr &expr) {
   ss << "Binary( op: " << tok2str(expr.op());
   tab();
   newline();
@@ -79,7 +81,7 @@ void AST::ExprPrinter::visit(BinaryExpr &expr) {
   untab();
 }
 
-void AST::ExprPrinter::visit(TernaryExpr &expr) {
+void SLang::AST::ExprPrinter::visit(TernaryExpr &expr) {
   ss << "Ternary(" << std::endl;
 
   ss << std::setw(4) << " ";
@@ -95,7 +97,7 @@ void AST::ExprPrinter::visit(TernaryExpr &expr) {
   ss << ")";
 }
 
-void AST::ExprPrinter::visit(AssignExpr &expr) {
+void SLang::AST::ExprPrinter::visit(AssignExpr &expr) {
   ss << "Assign(";
   tab();
   newline();
@@ -107,7 +109,7 @@ void AST::ExprPrinter::visit(AssignExpr &expr) {
   indent();
 }
 
-void AST::ExprPrinter::visit(DefineExpr &expr) {
+void SLang::AST::ExprPrinter::visit(DefineExpr &expr) {
   ss << "Define(" << expr.ident().get_value() << ": " << tok2str(expr.type());
   if (expr.expr().has_value()) {
     ss << " = ";
@@ -119,16 +121,16 @@ void AST::ExprPrinter::visit(DefineExpr &expr) {
   ss << ")";
 }
 
-void AST::ExprPrinter::visit(ImportStmt &stmt) {
+void SLang::AST::ExprPrinter::visit(ImportStmt &stmt) {
   ss << "Import(" << stmt.litteral().get_value() << ")" << std::endl;
 }
 
-void AST::ExprPrinter::visit(AST::ArgDefineExpr &expr) {
+void SLang::AST::ExprPrinter::visit(SLang::AST::ArgDefineExpr &expr) {
   ss << "Arg(" << expr.ident().get_value() << ": " << tok2str(expr.type())
      << ")";
 }
 
-void AST::ExprPrinter::visit(AST::BlockStmt &stmt) {
+void SLang::AST::ExprPrinter::visit(SLang::AST::BlockStmt &stmt) {
   ss << "Block {";
   tab();
 
@@ -142,7 +144,7 @@ void AST::ExprPrinter::visit(AST::BlockStmt &stmt) {
   ss << "}";
 }
 
-void AST::ExprPrinter::visit(AST::FnDefineStmt &stmt) {
+void SLang::AST::ExprPrinter::visit(SLang::AST::FnDefineStmt &stmt) {
   ss << "FnDef(" << stmt.ident().get_value() << "(";
 
   for (size_t i = 0; i < stmt.args().size(); i++) {
@@ -169,29 +171,40 @@ void AST::ExprPrinter::visit(AST::FnDefineStmt &stmt) {
   newline();
 }
 
-void AST::ExprPrinter::visit(AST::ReturnStmt &stmt) {
+void SLang::AST::ExprPrinter::visit(SLang::AST::ReturnStmt &stmt) {
   ss << "Return(";
   stmt.expr()->accept(*this);
   ss << ")";
 }
 
-void AST::ExprPrinter::visit(AST::ExprStmt &stmt) {
+void SLang::AST::ExprPrinter::visit(SLang::AST::ExprStmt &stmt) {
   ss << "ExprStmt(";
   stmt.expr()->accept(*this);
   ss << ")";
   newline();
 }
 
-void AST::ExprPrinter::visit(AST::IfStmt &stmt) {
+void SLang::AST::ExprPrinter::visit(SLang::AST::IfStmt &stmt) {
   ss << "If(";
   stmt.cond()->accept(*this);
 
-  ss << ") : ";
+  ss << ") { ";
+  tab();
+  newline();
   stmt.true_block().accept(*this);
+  untab();
+  ss << "} ";
 
-  if (stmt.elif_block().has_value()) {
-    ss << " elif ";
-    stmt.elif_block().value()->accept(*this);
+  for (auto &stmt : stmt.elif_block()) {
+    ss << " elif (";
+    stmt->cond()->accept(*this);
+    ss << ") {";
+    tab();
+    newline();
+    stmt->true_block().accept(*this);
+    untab();
+    newline();
+    ss << "}";
   }
 
   if (stmt.else_block().has_value()) {
@@ -200,14 +213,14 @@ void AST::ExprPrinter::visit(AST::IfStmt &stmt) {
   }
 }
 
-void AST::ExprPrinter::visit(AST::WhileStmt &stmt) {
+void SLang::AST::ExprPrinter::visit(SLang::AST::WhileStmt &stmt) {
   ss << "While(";
   stmt.cond()->accept(*this);
   ss << ") " << std::endl;
   stmt.block().accept(*this);
 }
 
-void AST::ExprPrinter::visit(AST::ForStmt &stmt) {
+void SLang::AST::ExprPrinter::visit(SLang::AST::ForStmt &stmt) {
   ss << "For(";
   stmt.init()->accept(*this);
   ss << "; ";
@@ -218,7 +231,7 @@ void AST::ExprPrinter::visit(AST::ForStmt &stmt) {
   stmt.block().accept(*this);
 }
 
-void AST::ExprPrinter::visit(AST::InterfaceFnDefineStmt &stmt) {
+void SLang::AST::ExprPrinter::visit(SLang::AST::InterfaceFnDefineStmt &stmt) {
   ss << "InterfaceFn(" << stmt.ident().get_value() << "(";
 
   for (size_t i = 0; i < stmt.args().size(); i++) {
@@ -235,7 +248,7 @@ void AST::ExprPrinter::visit(AST::InterfaceFnDefineStmt &stmt) {
   }
 }
 
-void AST::ExprPrinter::visit(AST::InterfaceStmt &stmt) {
+void SLang::AST::ExprPrinter::visit(SLang::AST::InterfaceStmt &stmt) {
   ss << "Interface(" << stmt.ident().get_value() << " ";
   stmt.block().accept(*this);
   ss << ")";
@@ -243,7 +256,7 @@ void AST::ExprPrinter::visit(AST::InterfaceStmt &stmt) {
   newline();
 }
 
-void AST::ExprPrinter::visit(AST::ClassStmt &stmt) {
+void SLang::AST::ExprPrinter::visit(SLang::AST::ClassStmt &stmt) {
   ss << "Class(" << stmt.ident().get_value();
 
   if (stmt.super().has_value()) {
@@ -268,7 +281,7 @@ void AST::ExprPrinter::visit(AST::ClassStmt &stmt) {
   newline();
 }
 
-void AST::ExprPrinter::visit(AST::ClassField &stmt) {
+void SLang::AST::ExprPrinter::visit(SLang::AST::ClassField &stmt) {
   ss << "ClassField(";
 
   if (stmt.is_private()) {
@@ -280,7 +293,7 @@ void AST::ExprPrinter::visit(AST::ClassField &stmt) {
   ss << stmt.ident().get_value() << ": " << tok2str(stmt.type()) << ")";
 }
 
-void AST::ExprPrinter::visit(AST::ClassFnDefineStmt &stmt) {
+void SLang::AST::ExprPrinter::visit(SLang::AST::ClassFnDefineStmt &stmt) {
   ss << "ClassFnDefine( ";
 
   if (stmt.is_private()) {
@@ -307,7 +320,7 @@ void AST::ExprPrinter::visit(AST::ClassFnDefineStmt &stmt) {
   stmt.block().accept(*this);
 }
 
-void AST::ExprPrinter::visit(AST::ClassMemberGetter &stmt) {
+void SLang::AST::ExprPrinter::visit(SLang::AST::ClassMemberGetter &stmt) {
   ss << "ClassMemberGetter(";
   tab();
   newline();
@@ -321,7 +334,7 @@ void AST::ExprPrinter::visit(AST::ClassMemberGetter &stmt) {
   newline();
 }
 
-void AST::ExprPrinter::visit(AST::ClassMemberSetter &stmt) {
+void SLang::AST::ExprPrinter::visit(SLang::AST::ClassMemberSetter &stmt) {
   ss << "ClassMemberSetter(";
   tab();
   newline();
@@ -335,7 +348,7 @@ void AST::ExprPrinter::visit(AST::ClassMemberSetter &stmt) {
   newline();
 }
 
-void AST::ExprPrinter::visit(AST::ClassMemberCall &stmt) {
+void SLang::AST::ExprPrinter::visit(SLang::AST::ClassMemberCall &stmt) {
   ss << "ClassMemberCall(";
   tab();
   newline();
@@ -349,7 +362,7 @@ void AST::ExprPrinter::visit(AST::ClassMemberCall &stmt) {
   newline();
 }
 
-void AST::ExprPrinter::visit(AST::ClassMemberAccess &stmt) {
+void SLang::AST::ExprPrinter::visit(SLang::AST::ClassMemberAccess &stmt) {
   ss << "ClassMemberAccess(";
   tab();
   newline();
@@ -363,15 +376,15 @@ void AST::ExprPrinter::visit(AST::ClassMemberAccess &stmt) {
   newline();
 }
 
-void AST::ExprPrinter::visit(AST::VoidStmt &stmt) {
+void SLang::AST::ExprPrinter::visit(SLang::AST::VoidStmt &stmt) {
   ss << "VoidStmt" << std::endl;
 }
 
-auto AST::ExprPrinter::get_string() -> std::string { return ss.str(); }
+auto SLang::AST::ExprPrinter::get_string() -> std::string { return ss.str(); }
 
-AST::ASTree::ASTree() {}
+SLang::AST::ASTree::ASTree() {}
 
-auto AST::ASTree::to_string() -> std::string {
+auto SLang::AST::ASTree::to_string() -> std::string {
   ExprPrinter printer;
 
   for (auto &&stmt : stmts) {
@@ -380,3 +393,5 @@ auto AST::ASTree::to_string() -> std::string {
 
   return printer.get_string();
 }
+
+auto SLang::AST::ASTree::get_stmts() -> std::vector<Expr_t> * { return &stmts; }
