@@ -1,14 +1,10 @@
 #include "context.hpp"
-#include "parser.hpp"
+#include "stdlib.hpp"
 #include <fstream>
 #include <iostream>
 #include <stdlib.h>
 #include <string>
 #include <unordered_map>
-
-// TODO: I have to rewrite the code to modern c++. Now I'm write in mix of c++
-// and c :/
-// For example rewrite return to trailing return which come from c++11 standard
 
 bool ltrace = false;
 
@@ -52,13 +48,16 @@ std::string load_src(char *path) {
 }
 
 int main(int argc, char *argv[]) {
-  SLContext ctx;
+  SLang::SLContext ctx;
+  SLang::StdLib::bind(ctx);
 
   parse_args(argc, argv);
 
   std::string src = load_src(argv[1]);
 
   ctx.parse(src);
+
+  ctx.execute();
 
   return EXIT_SUCCESS;
 }
