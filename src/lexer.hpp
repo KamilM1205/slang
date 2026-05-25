@@ -15,9 +15,7 @@
 #include <string>
 #include <vector>
 
-// TODO: Rewrite to std::variant
-// TODO: Check all the lexer for superflous copying objects
-
+namespace SLang {
 auto tok2str(const Token &token) -> std::string;
 auto type2str(const TokenType token) -> std::string;
 
@@ -81,5 +79,7 @@ public:
   [[nodiscard]]
   auto getTokens() const -> const TokenList &;
 };
+
+} // namespace SLang
 
 #endif

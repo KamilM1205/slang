@@ -10,7 +10,7 @@
 
 const char END_OF_STREAM = '\0';
 
-auto type2str(TokenType type) -> std::string {
+auto SLang::type2str(TokenType type) -> std::string {
   static const std::unordered_map<TokenType, std::string> tokenTypeStrings = {
       {TokenType::NONE, "NONE"},
       // Keywords
@@ -28,6 +28,7 @@ auto type2str(TokenType type) -> std::string {
       {TokenType::STRING, "STRING"},
       {TokenType::USTRING, "USTRING"},
       {TokenType::BOOL, "BOOL"},
+      {TokenType::AUTO, "AUTO"},
       {TokenType::FUNCTION, "FUNCTION"},
       {TokenType::RETURN, "RETURN"},
       {TokenType::IMPORT, "IMPORT"},
@@ -47,6 +48,7 @@ auto type2str(TokenType type) -> std::string {
       {TokenType::PLUS, "PLUS"},
       {TokenType::MINUS, "MINUS"},
       {TokenType::STAR, "STAR"},
+      {TokenType::PERCENT, "PERCENT"},
       {TokenType::SLASH, "SLASH"},
       {TokenType::BLK_BEGIN, "BLK_BEGIN"},
       {TokenType::BLK_END, "BLK_END"},
@@ -71,58 +73,63 @@ auto type2str(TokenType type) -> std::string {
   return "UNKNOWN";
 }
 
-auto tok2str(const Token &token) -> std::string {
+auto SLang::tok2str(const Token &token) -> std::string {
   return type2str(token.get_type());
 }
 
-const std::unordered_map<std::string, TokenType> keywords_table = {
-    {"for", TokenType::FOR},       {"while", TokenType::WHILE},
-    {"if", TokenType::IF},         {"elif", TokenType::ELIF},
-    {"else", TokenType::ELSE},     {"and", TokenType::AND},
-    {"or", TokenType::OR},         {"true", TokenType::TRUE},
-    {"false", TokenType::FALSE},   {"var", TokenType::VAR},
-    {"int", TokenType::INT},       {"float", TokenType::FLOAT},
-    {"string", TokenType::STRING}, {"ustring", TokenType::USTRING},
-    {"bool", TokenType::BOOL},     {"fn", TokenType::FUNCTION},
-    {"return", TokenType::RETURN}, {"import", TokenType::IMPORT},
-    {"class", TokenType::CLASS},   {"interface", TokenType::INTERFACE},
+const std::unordered_map<std::string, SLang::TokenType> SLang::keywords_table =
+    {
+        {"for", TokenType::FOR},       {"while", TokenType::WHILE},
+        {"if", TokenType::IF},         {"elif", TokenType::ELIF},
+        {"else", TokenType::ELSE},     {"and", TokenType::AND},
+        {"or", TokenType::OR},         {"true", TokenType::TRUE},
+        {"false", TokenType::FALSE},   {"var", TokenType::VAR},
+        {"int", TokenType::INT},       {"float", TokenType::FLOAT},
+        {"string", TokenType::STRING}, {"ustring", TokenType::USTRING},
+        {"bool", TokenType::BOOL},     {"fn", TokenType::FUNCTION},
+        {"return", TokenType::RETURN}, {"import", TokenType::IMPORT},
+        {"class", TokenType::CLASS},   {"interface", TokenType::INTERFACE},
 };
 
-Lexer::Lexer() {
+SLang::Lexer::Lexer() {
   econ = MessageContainer::get_instance();
   index = 0;
   column = 1;
   line = 1;
 }
 
-Lexer::Lexer(std::string &&text) : Lexer() { this->text = std::move(text); }
+SLang::Lexer::Lexer(std::string &&text) : Lexer() {
+  this->text = std::move(text);
+}
 
-Lexer::Lexer(const std::string &text) : Lexer() { this->text = text; }
+SLang::Lexer::Lexer(const std::string &text) : Lexer() { this->text = text; }
 
-void Lexer::set_source(std::string &&text) { this->text = std::move(text); }
+void SLang::Lexer::set_source(std::string &&text) {
+  this->text = std::move(text);
+}
 
-void Lexer::set_source(const std::string &text) { this->text = text; }
+void SLang::Lexer::set_source(const std::string &text) { this->text = text; }
 
-auto Lexer::getTokens() const -> const TokenList & { return tokens; }
+auto SLang::Lexer::getTokens() const -> const TokenList & { return tokens; }
 
-cross_inline void Lexer::addToken(TokenType type) {
+cross_inline void SLang::Lexer::addToken(TokenType type) {
   tokens.push_back(Token(line, column, index, type));
 }
 
-cross_inline void Lexer::addToken(TokenType type, std::string value) {
+cross_inline void SLang::Lexer::addToken(TokenType type, std::string value) {
   tokens.push_back(Token(line, column, index, type, value));
 }
 
-cross_inline void Lexer::check_overflow() {
+cross_inline void SLang::Lexer::check_overflow() {
   if (index + 1 >= SIZE_MAX) {
     econ->add_msg(MessageType::ERR, ERROR_INDEX_OVERFLOW);
     panic();
   }
 }
 
-cross_inline char Lexer::peek() { return text[index + 1]; }
+cross_inline char SLang::Lexer::peek() { return text[index + 1]; }
 
-void Lexer::next() {
+void SLang::Lexer::next() {
   check_overflow();
 
   index++;
@@ -136,7 +143,7 @@ void Lexer::next() {
   curr_ch = text[index];
 }
 
-void Lexer::next_line() {
+void SLang::Lexer::next_line() {
   column = 0;
   if (line + 1 == SIZE_MAX) {
     econ->add_msg(MessageType::ERR, ERROR_LINE_OVERFLOW);
@@ -146,7 +153,7 @@ void Lexer::next_line() {
   line++;
 }
 
-std::string Lexer::get_line() {
+std::string SLang::Lexer::get_line() {
   size_t count = 0;
 
   for (auto i = index - column + 1; i < text.size(); i++) {
@@ -169,7 +176,7 @@ cross_inline static bool is_alphadigit(char ch) {
   return isdigit(ch) || isalpha(ch);
 }
 
-cross_inline bool Lexer::check_eol(char ch) {
+cross_inline bool SLang::Lexer::check_eol(char ch) {
   if (ch == END_OF_STREAM) {
     econ->add_msg(MessageType::ERR, line, column, ERROR_UNEXPECTED_EOF);
     return true;
@@ -182,7 +189,7 @@ cross_inline bool Lexer::check_eol(char ch) {
   return false;
 }
 
-void Lexer::read_identifier() {
+void SLang::Lexer::read_identifier() {
   std::string identifier;
   identifier += curr_ch;
 
@@ -210,7 +217,7 @@ cross_inline static bool check_hex(char ch) {
 
 cross_inline static bool check_bin(char ch) { return (ch == '0' || ch == '1'); }
 
-cross_inline void Lexer::read_number() {
+cross_inline void SLang::Lexer::read_number() {
   std::string number;
   NumberNotation notation = NumberNotation::ORD;
 
@@ -280,7 +287,7 @@ parse_number:
   addToken(TokenType::NUMBER, number);
 }
 
-bool Lexer::escape_characters(std::string &literal) {
+bool SLang::Lexer::escape_characters(std::string &literal) {
   if (curr_ch == '\\') {
     char esc = peek();
 
@@ -331,7 +338,7 @@ exit:
   return false;
 }
 
-cross_inline void Lexer::read_string() {
+cross_inline void SLang::Lexer::read_string() {
   std::string literal;
 
   while (true) {
@@ -351,7 +358,7 @@ cross_inline void Lexer::read_string() {
   }
 }
 
-cross_inline void Lexer::read_multi_string() {
+cross_inline void SLang::Lexer::read_multi_string() {
   std::string literal;
   std::string start_line = get_line();
   size_t ccolumn = column, cline = line;
@@ -380,7 +387,7 @@ cross_inline void Lexer::read_multi_string() {
   }
 }
 
-cross_inline void Lexer::pass_comment() {
+cross_inline void SLang::Lexer::pass_comment() {
   while (true) {
     if (peek() == '\n') {
       next();
@@ -392,7 +399,7 @@ cross_inline void Lexer::pass_comment() {
   }
 }
 
-cross_inline void Lexer::pass_multi_comment() {
+cross_inline void SLang::Lexer::pass_multi_comment() {
   std::string start_line = get_line();
   size_t cline = line, ccolumn = column;
   next();
@@ -412,7 +419,7 @@ cross_inline void Lexer::pass_multi_comment() {
   }
 }
 
-auto Lexer::get_line(const Token &token) -> std::string {
+auto SLang::Lexer::get_line(const Token &token) -> std::string {
   size_t count = 0;
 
   for (auto i = token.index() - token.column() + 1; i < text.size(); i++) {
@@ -426,7 +433,7 @@ auto Lexer::get_line(const Token &token) -> std::string {
 }
 
 // TODO: Add count assign(+=/-=/*=/ /= %=)
-void Lexer::tokenize() {
+void SLang::Lexer::tokenize() {
   curr_ch = text[index];
 
   while (curr_ch != END_OF_STREAM) {
