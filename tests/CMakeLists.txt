@@ -4,7 +4,8 @@ if(SLANG_USE_TESTS)
 
   FetchContent_Declare(
     googletest
-    URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+    GIT_REPOSITORY https://github.com/google/googletest
+    GIT_TAG v1.17.0
   )
 
   set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
@@ -16,7 +17,7 @@ if(SLANG_USE_TESTS)
     lexer
     ${CMAKE_CURRENT_LIST_DIR}/lexer.cpp
     ${PROJECT_SOURCE_DIR}/src/lexer.cpp
-    ${PROJECT_SOURCE_DIR}/src/error.cpp
+    ${PROJECT_SOURCE_DIR}/src/message.cpp
     ${PROJECT_SOURCE_DIR}/src/errors.cpp
     ${PROJECT_SOURCE_DIR}/src/panic.cpp
   )
@@ -29,7 +30,7 @@ if(SLANG_USE_TESTS)
   add_executable(
     errors
     ${CMAKE_CURRENT_LIST_DIR}/errors.cpp
-    ${PROJECT_SOURCE_DIR}/src/error.cpp
+    ${PROJECT_SOURCE_DIR}/src/message.cpp
     ${PROJECT_SOURCE_DIR}/src/errors.cpp
   )
   target_link_libraries(
@@ -42,7 +43,7 @@ if(SLANG_USE_TESTS)
     ast
     ${CMAKE_CURRENT_LIST_DIR}/ast.cpp
     ${PROJECT_SOURCE_DIR}/src/ast.cpp
-    ${PROJECT_SOURCE_DIR}/src/error.cpp
+    ${PROJECT_SOURCE_DIR}/src/message.cpp
     ${PROJECT_SOURCE_DIR}/src/errors.cpp
     ${PROJECT_SOURCE_DIR}/src/panic.cpp
     ${PROJECT_SOURCE_DIR}/src/lexer.cpp
@@ -57,7 +58,7 @@ if(SLANG_USE_TESTS)
     parser
     ${CMAKE_CURRENT_LIST_DIR}/parser.cpp
     ${PROJECT_SOURCE_DIR}/src/ast.cpp
-    ${PROJECT_SOURCE_DIR}/src/error.cpp
+    ${PROJECT_SOURCE_DIR}/src/message.cpp
     ${PROJECT_SOURCE_DIR}/src/errors.cpp
     ${PROJECT_SOURCE_DIR}/src/lexer.cpp
     ${PROJECT_SOURCE_DIR}/src/parser.cpp
