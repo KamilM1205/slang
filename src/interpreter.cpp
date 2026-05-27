@@ -354,14 +354,14 @@ void SLang::Interpreter::visit(SLang::AST::WhileStmt &stmt) {
   Value cond_value(ValueType::BOOL);
 
   stmt.cond()->accept(*this);
-  cond_value = pop();
+  cond_value = std::move(pop()).get_raw_value();
   SLAssert(cond_value.get_type() == ValueType::BOOL,
            "condition must be boolean type.");
 
   while (cond_value == true) {
     stmt.block().accept(*this);
     stmt.cond()->accept(*this);
-    cond_value = pop();
+    cond_value = std::move(pop()).get_raw_value();
   }
 }
 
@@ -371,7 +371,7 @@ void SLang::Interpreter::visit(SLang::AST::ForStmt &stmt) {
   env.push_env();
   stmt.init()->accept(*this);
   stmt.cond()->accept(*this);
-  cond_value = pop();
+  cond_value = std::move(pop()).get_raw_value();
   assert(cond_value.get_type() == ValueType::BOOL &&
          "condition must be boolean type.");
 
@@ -380,7 +380,7 @@ void SLang::Interpreter::visit(SLang::AST::ForStmt &stmt) {
     stmt.step()->accept(*this);
     pop(); // Because after step execution we have result value in stack
     stmt.cond()->accept(*this);
-    cond_value = pop();
+    cond_value = std::move(pop()).get_raw_value();
   }
 
   env.pop_env();
