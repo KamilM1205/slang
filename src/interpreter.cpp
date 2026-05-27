@@ -287,9 +287,15 @@ void SLang::Interpreter::visit(SLang::AST::BlockStmt &stmt) {
   env.push_env();
 
   for (const auto &stmt : stmt.stmts()) {
-    stmt->accept(*this);
-    stack.clear(); // That's need because we have stmt like increment that
-                   // pushes value to stack and no one take it.
+    try {
+      stmt->accept(*this);
+      stack.clear(); // That's need because we have stmt like increment that
+                     // pushes value to stack and no one take it.
+    } catch (ReturnException ret) {
+      env.pop_env();
+      stack.clear();
+      throw ReturnException(ret);
+    }
   }
 
   env.pop_env();
