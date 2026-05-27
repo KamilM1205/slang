@@ -173,7 +173,9 @@ void SLang::AST::ExprPrinter::visit(SLang::AST::FnDefineStmt &stmt) {
 
 void SLang::AST::ExprPrinter::visit(SLang::AST::ReturnStmt &stmt) {
   ss << "Return(";
-  stmt.expr()->accept(*this);
+  if (stmt.expr().has_value()) {
+    stmt.expr().value()->accept(*this);
+  }
   ss << ")";
 }
 

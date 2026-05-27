@@ -584,7 +584,10 @@ auto SLang::Parser::parse_fn_define() -> AST::FnDefineStmt {
 }
 
 auto SLang::Parser::parse_return() -> AST::ReturnStmt {
-  AST::Expr_t expr = parse_expression();
+  std::optional<AST::Expr_t> expr{};
+  if (!match({TokenType::SEMICOLON})) {
+    expr = parse_expression();
+  }
   consume(TokenType::SEMICOLON);
 
   return AST::ReturnStmt(std::move(expr));

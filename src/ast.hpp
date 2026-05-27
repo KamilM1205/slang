@@ -283,10 +283,10 @@ public:
 };
 
 class ReturnStmt : public Expr {
-  getter(Expr_t, expr);
+  getter(std::optional<Expr_t>, expr);
 
 public:
-  ReturnStmt(Expr_t expr) : _expr(std::move(expr)) {}
+  ReturnStmt(std::optional<Expr_t> expr) : _expr(std::move(expr)) {}
 
   void accept(IExprVisitor &visitor) override { visitor.visit(*this); }
 };

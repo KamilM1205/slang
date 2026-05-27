@@ -19,11 +19,12 @@ class Interpreter;
 
 class ReturnException : std::exception {
 private:
-  Value value;
+  std::optional<Value> value;
 
 public:
   ReturnException(Value value) : value(value) {}
-  auto get_value() -> Value;
+  ReturnException() = default;
+  auto get_value() -> std::optional<Value>;
 };
 
 class Function {

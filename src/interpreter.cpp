@@ -4,10 +4,13 @@
 #include <cassert>
 #include <cstddef>
 #include <memory>
+#include <ranges>
 #include <stdexcept>
 #include <variant>
 
-auto SLang::ReturnException::get_value() -> Value { return value; }
+auto SLang::ReturnException::get_value() -> std::optional<Value> {
+  return value;
+}
 
 SLang::Value SLang::Function::operator()(Interpreter &interpreter, Args args) {
   SLAssert(this->args.size() == args.size(),
@@ -31,7 +34,11 @@ SLang::Value SLang::Function::operator()(Interpreter &interpreter, Args args) {
       try {
         stmt->accept(interpreter);
       } catch (ReturnException ret) {
-        ret_value = ret.get_value();
+        if (ret.get_value().has_value()) {
+          ret_value = ret.get_value().value();
+        } else {
+          ret_value = Value();
+        }
         SLAssert(ret_value.get_type() == ret_type,
                  std::format("Error: expected return with type: {}, found: {}",
                              Value::type_to_string(ret_type),
@@ -72,7 +79,7 @@ void SLang::Environment::set_var(std::string name, Value &&value) {
 }
 
 auto SLang::Environment::get_var(std::string name) -> Value {
-  for (auto &env : stack) {
+  for (auto &env : stack | std::views::reverse) {
     if (env.vars.contains(name)) {
       return env.vars[name];
     }
@@ -92,7 +99,7 @@ void SLang::Environment::add_fn(Function fn) {
 
 SLang::Value SLang::Environment::call_fn(Interpreter &interpreter,
                                          std::string name, Args args) {
-  for (auto &env : stack) {
+  for (auto &env : stack | std::views::reverse) {
     if (env.funcs.contains(name)) {
       return (*env.funcs[name])(interpreter, args);
     }
@@ -130,7 +137,7 @@ void SLang::Interpreter::visit(SLang::AST::FunCallExpr &expr) {
 
   for (auto &arg : expr.args()) {
     arg->accept(*this);
-    args.push_back(pop());
+    args.push_back(pop().get_raw_value());
   }
 
   push(env.call_fn(*this, expr.ident().get_value(), std::move(args)));
@@ -214,8 +221,7 @@ void SLang::Interpreter::visit(SLang::AST::BinaryExpr &expr) {
     push(left != right);
     break;
   case TokenType::AND:
-    if ((left == Value(true) && right == Value(true)) ||
-        (left == Value(false) && right == Value(false))) {
+    if (left == Value(true) && right == Value(true)) {
       push(true);
     } else {
       push(false);
@@ -307,15 +313,19 @@ void SLang::Interpreter::visit(SLang::AST::FnDefineStmt &stmt) {
 }
 
 void SLang::Interpreter::visit(SLang::AST::ReturnStmt &stmt) {
-  stmt.expr()->accept(*this);
-  throw ReturnException(std::move(pop()));
+  if (stmt.expr().has_value()) {
+    stmt.expr().value()->accept(*this);
+    throw ReturnException(std::move(pop().get_raw_value()));
+  } else {
+    throw ReturnException();
+  }
 }
 
 void SLang::Interpreter::visit(SLang::AST::IfStmt &stmt) {
   Value cond_value(ValueType::BOOL);
 
   stmt.cond()->accept(*this);
-  cond_value = std::move(pop());
+  cond_value = std::move(pop()).get_raw_value();
   SLAssert(cond_value.get_type() == ValueType::BOOL,
            "condition must be boolean type.");
 
@@ -326,7 +336,7 @@ void SLang::Interpreter::visit(SLang::AST::IfStmt &stmt) {
 
   for (auto &elif : stmt.elif_block()) {
     elif->cond()->accept(*this);
-    cond_value = pop();
+    cond_value = std::move(pop()).get_raw_value();
     SLAssert(cond_value.get_type() == ValueType::BOOL,
              "condition must be boolean type.");
     if (cond_value == true) {
