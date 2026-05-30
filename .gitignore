@@ -5,3 +5,4 @@ docs/*
 !docs/Doxyfile.in
 Doxyfile
 callgrind.out.*
+src/compile_options.hpp

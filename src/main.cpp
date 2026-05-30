@@ -1,3 +1,4 @@
+#include "compile_options.hpp"
 #include "context.hpp"
 #include "stdlib.hpp"
 #include <fstream>
@@ -10,10 +11,12 @@ bool ltrace = false;
 
 enum class Command {
   LTRACE = 0,
+  VERSION,
 };
 
 std::unordered_map<std::string, Command> commands = {
     {"--ltrace", Command::LTRACE},
+    {"--version", Command::VERSION},
 };
 
 void parse_args(int argc, char *argv[]) {
@@ -25,6 +28,10 @@ void parse_args(int argc, char *argv[]) {
     default:
       std::cout << "Unexpected command: " << argv[2] << std::endl;
       break;
+    }
+  } else if (argc == 2) {
+    if (commands.at(argv[1]) == Command::VERSION) {
+      std::cout << "SLang version: " << SLang::SLANG_VERSION << std::endl;
     }
   }
 }
@@ -53,11 +60,13 @@ int main(int argc, char *argv[]) {
 
   parse_args(argc, argv);
 
-  std::string src = load_src(argv[1]);
+  if (argc == 3) {
+    std::string src = load_src(argv[1]);
 
-  ctx.parse(src);
+    ctx.parse(src);
 
-  ctx.execute();
+    ctx.execute();
+  }
 
   return EXIT_SUCCESS;
 }

@@ -1,4 +1,16 @@
 #ifndef COMPILE_OPTIONS_HPP
 #define COMPILE_OPTIONS_HPP
 
+#include "utils.hpp"
+
+namespace SLang {
+constexpr int SLANG_VERSION_MAJOR = cto_int("@slang_Version_Major@");
+constexpr int SLANG_VERSION_MINOR = cto_int("@slang_Version_Minor@");
+constexpr int SLANG_VERSION_PATCH = cto_int("@slang_Version_Patch@");
+constexpr char SLANG_VERSION_STATUS[] = "@slang_Version_Status@";
+constexpr char SLANG_VERSION[] = "@PROJECT_VERSION@";
+
+#define USE_BENCHMARK "@SLANG_USE_BENCHMARK@"
+} // namespace SLang
+
 #endif // !COMPILE_OPTIONS_HPP
