@@ -75,11 +75,10 @@ if(NOT SLANG_USE_BENCHMARK)
   set(SLANG_USE_BENCHMARK ${use_benchmark} CACHE STRING "Set use benchmark." FORCE)
 endif()
 
-if(SLANG_USE_BENCHMARK)
-  set(BENCHMARK_IN ${CMAKE_CURRENT_SOURCE_DIR}/in/compile_options.hpp.in)
-  set(BENCHMARK_OUT ${CMAKE_CURRENT_SOURCE_DIR}/src/compile_options.hpp)
-  configure_file(${BENCHMARK_IN} ${BENCHMARK_OUT} @ONLY)
-endif()
+set(CONFIG_IN ${CMAKE_CURRENT_SOURCE_DIR}/in/compile_options.hpp.in)
+set(CONFIG_OUT ${CMAKE_CURRENT_SOURCE_DIR}/src/compile_options.hpp)
+configure_file(${CONFIG_IN} ${CONFIG_OUT} @ONLY)
+
 
 set(${PROJECT_NAME}_INSTALL_DIR ${PROJECT_SOURCE_DIR}/bin)
 set(CMAKE_CURRENT_BINARY_DIR ${${PROJECT_NAME}_INSTALL_DIR})
