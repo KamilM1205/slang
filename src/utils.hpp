@@ -1,7 +1,9 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
+#include <algorithm>
 #include <cassert>
+#include <cctype>
 #include <iostream> // IWYU pragma: keep
 #include <stdexcept>
 #include <string_view>
@@ -83,6 +85,38 @@ constexpr int cto_int(std::string_view str) {
   }
 
   return negative ? -result : result;
+}
+
+constexpr bool cto_bool(std::string_view str) {
+  if (str.empty()) {
+    return false;
+  }
+
+  auto equal_case_insensitive = [](std::string_view sv,
+                                   std::string_view pattern) {
+    if (sv.size() != pattern.size())
+      return false;
+    for (size_t i = 0; i < sv.size(); ++i) {
+      char sc = sv[i];
+      char pc = pattern[i];
+      // Convert to lowercase
+      if (sc >= 'A' && sc <= 'Z')
+        sc = sc + ('a' - 'A');
+      if (pc >= 'A' && pc <= 'Z')
+        pc = pc + ('a' - 'A');
+      if (sc != pc)
+        return false;
+    }
+    return true;
+  };
+  if (equal_case_insensitive(str, "off") || equal_case_insensitive(str, "0")) {
+    return false;
+  } else if (equal_case_insensitive(str, "on") ||
+             equal_case_insensitive(str, "1")) {
+    return true;
+  }
+
+  return false;
 }
 
 } // namespace SLang
