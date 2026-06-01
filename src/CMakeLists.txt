@@ -11,6 +11,7 @@ set(
   interpreter.cpp
   value.cpp
   stdlib.cpp
+  benchmark.cpp
 )
 
 list(TRANSFORM SOURCES PREPEND ${CMAKE_CURRENT_LIST_DIR}/)

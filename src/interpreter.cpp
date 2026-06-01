@@ -1,5 +1,6 @@
 #include "interpreter.hpp"
 #include "ast.hpp"
+#include "benchmark.hpp"
 #include "value.hpp"
 #include <cassert>
 #include <cstddef>
@@ -417,6 +418,7 @@ void SLang::Interpreter::visit(SLang::AST::ExprStmt &stmt) {
 void SLang::Interpreter::visit(SLang::AST::VoidStmt &stmt) {}
 
 void SLang::Interpreter::execute() {
+  SLANG_TIME(Interpreter);
   if (tree == nullptr) {
     throw std::runtime_error("AST not passed to interpreter.");
   }

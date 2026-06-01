@@ -1,5 +1,6 @@
 #include "parser.hpp"
 #include "ast.hpp"
+#include "benchmark.hpp"
 #include "errors.hpp"
 #include "lexer.hpp"
 #include "message.hpp"
@@ -929,6 +930,7 @@ auto SLang::Parser::parse_stmt() -> AST::Expr_t {
 }
 
 SLang::AST::ASTree &SLang::Parser::parse(Lexer *lexer) {
+  SLANG_TIME(Parser);
   this->lexer = lexer;
 
   if (lexer->getTokens().empty()) {

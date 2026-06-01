@@ -1,4 +1,5 @@
 #include "lexer.hpp"
+#include "benchmark.hpp"
 #include "errors.hpp"
 #include "message.hpp"
 #include "panic.hpp"
@@ -434,6 +435,7 @@ auto SLang::Lexer::get_line(const Token &token) -> std::string {
 
 // TODO: Add count assign(+=/-=/*=/ /= %=)
 void SLang::Lexer::tokenize() {
+  SLANG_TIME(Lexer);
   curr_ch = text[index];
 
   while (curr_ch != END_OF_STREAM) {

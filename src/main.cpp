@@ -1,3 +1,4 @@
+#include "benchmark.hpp"
 #include "compile_options.hpp"
 #include "context.hpp"
 #include "stdlib.hpp"
@@ -19,23 +20,6 @@ std::unordered_map<std::string, Command> commands = {
     {"--version", Command::VERSION},
 };
 
-void parse_args(int argc, char *argv[]) {
-  if (argc == 3 && commands.find(argv[2]) != commands.end()) {
-    switch (commands.at(argv[2])) {
-    case Command::LTRACE:
-      ltrace = true;
-      break;
-    default:
-      std::cout << "Unexpected command: " << argv[2] << std::endl;
-      break;
-    }
-  } else if (argc == 2) {
-    if (commands.at(argv[1]) == Command::VERSION) {
-      std::cout << "SLang version: " << SLang::SLANG_VERSION << std::endl;
-    }
-  }
-}
-
 std::string load_src(char *path) {
   std::ifstream src(path);
   std::string res;
@@ -54,19 +38,35 @@ std::string load_src(char *path) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
-  SLang::SLContext ctx;
-  SLang::StdLib::bind(ctx);
+void parse_args(int argc, char *argv[]) {
+  if (argc == 3 && commands.find(argv[2]) != commands.end()) {
+    switch (commands.at(argv[2])) {
+    case Command::LTRACE:
+      ltrace = true;
+      break;
+    default:
+      std::cout << "Unexpected command: " << argv[2] << std::endl;
+      break;
+    }
+  } else if (argc == 2 && commands.contains(argv[1])) {
+    if (commands.at(argv[1]) == Command::VERSION) {
+      std::cout << "SLang version: " << SLang::SLANG_VERSION << std::endl;
+    }
+  } else if (argc == 2) {
+    SLang::SLContext ctx;
+    SLang::StdLib::bind(ctx);
 
-  parse_args(argc, argv);
-
-  if (argc == 3) {
     std::string src = load_src(argv[1]);
 
     ctx.parse(src);
 
     ctx.execute();
   }
+}
 
+int main(int argc, char *argv[]) {
+  SLANG_TIME(MAIN);
+
+  parse_args(argc, argv);
   return EXIT_SUCCESS;
 }

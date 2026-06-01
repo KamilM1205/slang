@@ -75,6 +75,8 @@ if(NOT SLANG_USE_BENCHMARK)
   set(SLANG_USE_BENCHMARK ${use_benchmark} CACHE STRING "Set use benchmark." FORCE)
 endif()
 
+message(STATUS "SLang Use Benchmark: ${SLANG_USE_BENCHMARK}")
+
 set(CONFIG_IN ${CMAKE_CURRENT_SOURCE_DIR}/in/compile_options.hpp.in)
 set(CONFIG_OUT ${CMAKE_CURRENT_SOURCE_DIR}/src/compile_options.hpp)
 configure_file(${CONFIG_IN} ${CONFIG_OUT} @ONLY)
